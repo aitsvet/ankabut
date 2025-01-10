@@ -13,7 +13,7 @@ class DB:
         path = Path(path)
         if path.is_dir():
             for file in path.iterdir():
-                self.add_doc(Doc(file))
+                self.add_doc(Doc(file).doc)
         elif path.match('*.json'):
             self.load_json(path)
         else:
@@ -24,7 +24,7 @@ class DB:
         self.db['citations'] += doc['citations']
         if 'keywords' in doc:
             for kw in doc['keywords']:
-                self.db['keywords'][kw] = self.db['keywords'].get(kw, 1) + 1
+                self.db['keywords'][kw] = self.db['keywords'].get(kw, 0) + 1
         for author in doc['authors']:
             name = author_name(author)
             if name:
@@ -42,8 +42,8 @@ class DB:
 
     def store_sqlite(self, dst):
         with sqlite3.connect(dst) as conn:
-            self.migrate(conn)
             cursor = conn.cursor()
+            migrate(cursor)
             for doc in self.db['docs']:
                 store_doc(cursor, doc)
             conn.commit()
@@ -52,6 +52,6 @@ class DB:
         with sqlite3.connect(src) as conn:
             migrate(conn.cursor())
             cursor = conn.cursor()
-            cursor.execute('SELECT doc_id, title, summary FROM docs')
+            cursor.execute('SELECT doc_id, year, title, summary FROM docs')
             for doc in cursor.fetchall():
                 self.add_doc(load_doc(cursor, doc))

@@ -1,17 +1,24 @@
-from pyvis.network import Network
 import numpy as np
 
-def visualize_authors_keywords(db, dst):
-    correlation_matrix = np.array([[1, 0.8, 0.3], [0.8, 1, 0.5], [0.3, 0.5, 1]])
-    distance_matrix = 1 - correlation_matrix
+from fields import author_name
+from pyvis.network import Network
 
-    net = Network()
-    for i in range(len(distance_matrix)):
-        for j in range(i + 1, len(distance_matrix)):
-            net.add_node(i)
-            net.add_node(j)
-            net.add_edge(i, j, weight=distance_matrix[i][j])
+def visualize_authors_keywords(db, dst):
+    net = Network('900px', '100%')
+    for author in db.db['authors'].keys():
+        net.add_node(author_name(author), shape='ellips', color='green', font={'color': 'white'})
+    for keyword, size in db.db['keywords'].items():
+        if size > 1:
+            label = keyword.replace(' ', '\n').replace('-', '-\n')
+            net.add_node(keyword, label=label, shape='box', color='orange', font={'color': 'black'})
+    for doc in db.db['docs']:
+        if any(db.db['keywords'][kw] > 1 for kw in doc['keywords']):
+            net.add_node(doc['path'], label=str(doc['year']), shape='circle', color='lightblue')
+            for author in doc['authors']:
+                net.add_edge(doc['path'], author_name(author), weight=10)
+            for keyword in doc['keywords']:
+                if db.db['keywords'][keyword] > 1:
+                    net.add_edge(doc['path'], keyword, weight=10)
 
     net.toggle_physics(True)
-    net.show_buttons(True)
     net.show(dst, notebook=False)

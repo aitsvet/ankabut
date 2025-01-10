@@ -6,12 +6,14 @@ from fields import keywords
 class Doc:
 
     def __init__(self, path):
-        self.doc = {'path': path, 'authors': [], 'sections': [{}], 'citations': []}
+        self.doc = {'path': path.name, 'authors': [], 'sections': [{}], 'citations': []}
         self.field = 'authors'
         self.paragraph = []
         number = 1
         try:
             with open(path, 'r') as f:
+                line = f.readline()
+                self.doc['year'] = line.strip()
                 line = f.readline()
                 while line:
                     self.add_line(line.strip())
