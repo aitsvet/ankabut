@@ -4,7 +4,7 @@ import traceback
 class Doc:
 
     def __init__(self, path):
-        self.doc = {'path': path, 'authors': [], 'sections': [{}], 'references': []}
+        self.doc = {'path': path, 'authors': [], 'sections': [{}], 'citations': []}
         self.field = 'authors'
         self.paragraph = []
         number = 1
@@ -18,7 +18,6 @@ class Doc:
                 self.add_paragraph()
         except:
             print(f'At {path}:{number} :')
-            traceback.print_exc()
 
     def add_line(self, line):
         if line.startswith('# '):
@@ -27,7 +26,7 @@ class Doc:
         elif line.startswith('## '):
             l = line.lower()
             if any(t in l for t in ['список', 'литератур', 'источ']) and not 'обзор' in l:
-                field = 'references'
+                field = 'citations'
             else:
                 if self.doc['sections'][0] == {}:
                     self.doc['sections'] = []
@@ -37,7 +36,7 @@ class Doc:
         elif line.startswith('Ключевые слова'):
             self.doc['keywords'] = [kw.strip().lower() for kw in re.split(r'[,.]+', line[15:]) if kw]
         elif len(line) > 0:
-            if field == 'references':
+            if field == 'citations':
                 line = re.sub(r'^[0-9]+\.', '', line).strip()
             self.paragraph.append(line)
         else:

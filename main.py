@@ -6,18 +6,17 @@ import sqlite3
 from db import DB
 from doc import Doc
 
-def main():
-    
-    dir = sys.argv[1]
-    db = DB()
-    for filename in os.listdir(dir):
-        db.add_doc(Doc(os.path.join(dir, filename)).doc)
-
-    with open(sys.argv[2], 'w') as f:
-        json.dump(db.db, f, ensure_ascii=False)
-
-    with sqlite3.connect(sys.argv[3]) as conn:    
-        db.store(conn)
+def main(command, source, dest):
+    if command == 'scan':
+        db = DB()
+        for filename in os.listdir(source):
+            db.add_doc(Doc(os.path.join(source, filename)).doc)
+        with open(dest, 'w') as f:
+            json.dump(db.db, f, ensure_ascii=False)
+    elif command == 'load':
+        db = DB(source)
+        with sqlite3.connect(dest) as conn:
+            db.store(conn)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1], sys.argv[2], sys.argv[3])

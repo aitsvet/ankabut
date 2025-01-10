@@ -1,3 +1,5 @@
 marker-pdf
 ollama
+numpy
+pyvis
 # graphrag
