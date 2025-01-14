@@ -44,7 +44,7 @@ def store_doc(cursor, doc):
 def load_doc(cursor, doc):
     doc_id, year, title, summary = doc
     doc = { 'path': doc_id, 'year': year, 'title': title, 'summary': summary, 'authors': [], 'keywords': [], 'citations': [], 'sections': [] }
-    cursor.execute('SELECT da.author_id FROM docs_authors da WHERE da.doc_id = ?', (doc_id,))
+    cursor.execute('SELECT author_id FROM docs_authors WHERE doc_id = ?', (doc_id,))
     for (author_id,) in cursor.fetchall():
         doc['authors'].append(author_id)
     cursor.execute('SELECT keyword FROM keywords WHERE doc_id = ?', (doc_id,))

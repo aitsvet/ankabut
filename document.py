@@ -1,10 +1,9 @@
 import re
 import traceback
 
-
 import parse
 
-class Doc:
+class Load:
 
     def __init__(self, path):
         self.doc = {'path': path.name, 'authors': [], 'sections': [{}], 'citations': []}

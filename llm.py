@@ -1,17 +1,22 @@
-import sys
+import yaml
+import ollama
 
-from ollama import chat, embed
-from ollama import ChatResponse, EmbedResponse
+def log(s):
+    print(s + '\n')
 
-with open(sys.argv[1], 'r') as f:
-    prompt = f.read()
+class Client:
 
-response: ChatResponse = chat(
-    model='rscr/ruadapt_qwen2.5_32b:Q4_K_M',
-    messages=[
-    {
-        'role': 'user',
-        'content': prompt + input,
-    },
-])
-print(response['message']['content'])
+    def __init__(self, cfg):
+        with open(cfg, 'r') as f:
+            self.prompts = yaml.safe_load(f)
+        self.model = self.prompts['model']
+
+    def chat(self, prompt, input):
+        log('>>> ' + self.model)
+        request = self.prompts[prompt].format(input=input)
+        log(request)
+        log('<<< ' + self.model)
+        response = ollama.chat(model=self.model,
+                               messages=[ { 'role': 'user', 'content': request} ])
+        log(response['message']['content'])
+        return response['message']['content']
