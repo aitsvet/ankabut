@@ -1,0 +1,8 @@
+__pycache__/
+venv/
+lib/
+pdfs/
+mds/
+*.json
+*.sqlite
+*.html

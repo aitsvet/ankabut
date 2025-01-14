@@ -1,9 +1,9 @@
 import numpy as np
 
-from fields import author_name
+from parse import author_name
 from pyvis.network import Network
 
-def visualize_authors_keywords(db, dst):
+def authors_keywords(db, dst):
     net = Network('900px', '100%')
     for author in db.db['authors'].keys():
         net.add_node(author_name(author), shape='ellips', color='green', font={'color': 'white'})

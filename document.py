@@ -1,7 +1,8 @@
 import re
 import traceback
 
-from fields import keywords
+
+import parse
 
 class Doc:
 
@@ -25,24 +26,28 @@ class Doc:
             print(f'At {path}:{number} :')
 
     def add_line(self, line):
+        line = line.replace('*', '')
         if line.startswith('# '):
             self.field = 'content'
             self.doc['title'] = line[2:].strip().capitalize()
-        elif line.startswith('## '):
+        elif line.startswith('##'):
             l = line.lower()
             if any(t in l for t in ['список', 'литератур', 'источ']) and not 'обзор' in l:
                 self.field = 'citations'
             else:
                 if self.doc['sections'][0] == {}:
                     self.doc['sections'] = []
-                self.doc['sections'].append({'title': line[3:].strip()})
+                self.doc['sections'].append({'title': re.sub(r'^#+', '', line).strip()})
         elif line.startswith('Аннотация'):
             self.doc['summary'] = line[10:].strip()
         elif line.startswith('Ключевые слова'):
-            self.doc['keywords'] = keywords(line[15:])
+            self.doc['keywords'] = parse.keywords(line[15:])
         elif len(line) > 0:
             if self.field == 'citations':
                 line = re.sub(r'^[0-9]+\.', '', line).strip()
+            elif len(self.paragraph) > 0 and re.match(r'^\| +[|а-яa-z]', line.strip()):
+                line = parse.table(self.paragraph[-1], line)
+                self.paragraph = self.paragraph[:-1]
             self.paragraph.append(line)
         else:
             self.add_paragraph()

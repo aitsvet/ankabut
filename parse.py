@@ -5,3 +5,7 @@ def author_name(title):
 
 def keywords(line):
     return [kw.strip().lower() for kw in re.split(r'[,.]+', line) if kw]
+
+def table(last, line):
+    return ' | '.join([l.strip()+' '+n.strip() for l, n in zip(last.split('|'), line.split('|'))]).strip()
+
