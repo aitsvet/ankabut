@@ -21,12 +21,12 @@ def main(src, dst, cfg = None):
             client = llm.Client(cfg)
             for doc in db.db['docs']:
                 summaries = []
-                for section in doc['sections']:
-                    text = ''
-                    if 'title' in section:
-                        text += '## ' + section['title'] + '\n\n'
-                    if 'content' in section:
-                        text += '\n\n'.join(section['content'])
+                for section in parse.summary_ranges(doc['sections'], 100, 300):
+                    for block in section['blocks']:
+                        text = ''
+                        if 'title' in section:
+                            text += '## ' + section['title'] + '\n\n'
+                        text += '\n\n'.join(block)
                         summaries.append(client.chat('section', text))
                 result = json.loads(client.chat('paper', '\n'.join(summaries)))
                 doc['llm'] = {
