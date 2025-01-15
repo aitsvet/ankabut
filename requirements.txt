@@ -2,4 +2,7 @@ marker-pdf
 ollama
 numpy
 pyvis
+jq
+pandas
+openpyxl
 # graphrag

@@ -6,3 +6,4 @@ mds/
 *.json
 *.sqlite
 *.html
+llm.yaml

@@ -45,7 +45,7 @@ class Load:
             if self.field == 'citations':
                 line = re.sub(r'^[0-9]+\.', '', line).strip()
             elif len(self.paragraph) > 0 and re.match(r'^\| +[|а-яa-z]', line.strip()):
-                line = parse.table(self.paragraph[-1], line)
+                line = parse.table_row(self.paragraph[-1], line)
                 self.paragraph = self.paragraph[:-1]
             self.paragraph.append(line)
         else:
