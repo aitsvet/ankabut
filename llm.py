@@ -7,10 +7,12 @@ def log(s):
 class Client:
 
     def __init__(self, cfg):
-        with open('configs/llm.yaml', 'r') as f:
-            for k, v in yaml.safe_load(f).items():
-                if k not in cfg:
-                    cfg[k] = v
+        try:
+            with open('configs/llm.yaml', 'r') as f:
+                for k, v in yaml.safe_load(f).items():
+                    if k not in cfg:
+                        cfg[k] = v
+        except: pass
         self.client = ollama.Client(host=cfg.get('host', None),
                                     headers={'Authorization': 'Bearer ' + cfg['token']} if 'token' in cfg else {})
         self.model = cfg['model']
