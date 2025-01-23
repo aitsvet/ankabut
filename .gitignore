@@ -1,8 +1,7 @@
 __pycache__/
 venv/
 lib/
-pdfs/
-mds/
+data/
 *.json
 *.sqlite
 *.html

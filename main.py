@@ -1,3 +1,4 @@
+import os
 import sys
 import yaml
 
@@ -10,6 +11,8 @@ import scripts
 def main(src, dst, cfg = None):
     src = pathlib.Path(src)
     dst = pathlib.Path(dst)
+    if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite']):
+        os.makedirs(dst, exist_ok=True)
     if dst.is_dir():
         convert.from_pdf(src, dst)
     else:
