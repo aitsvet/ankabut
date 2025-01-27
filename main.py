@@ -8,7 +8,7 @@ import database
 import pathlib
 import scripts
 
-def main(src, dst, cfg = None):
+def main(src, dst, cfg = {}):
     src = pathlib.Path(src)
     dst = pathlib.Path(dst)
     if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite']):
@@ -16,14 +16,16 @@ def main(src, dst, cfg = None):
     if dst.is_dir():
         convert.from_pdf(src, dst)
     else:
-        db = database.Load(src)
+        if cfg:
+            with open(cfg, 'r') as f:
+                cfg = yaml.safe_load(f)
+        db = database.Load(src, cfg)
         if dst.suffix == '.html':
             graph.authors_keywords(db, dst)
         elif cfg:
-            with open(cfg, 'r') as f:
-                cfg = yaml.safe_load(f)
-            scripts.repo[cfg['script']](db, cfg)
-        db.save(dst)
+            scripts.repo[cfg['script']](db, cfg, dst)
+        else:
+            db.save(dst)
 
 if __name__ == '__main__':
     main(*sys.argv[1:])

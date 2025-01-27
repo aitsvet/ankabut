@@ -8,11 +8,11 @@ import document
 
 class Load:
 
-    def __init__(self, src: Path):
+    def __init__(self, src: Path, cfg):
         self.db = {'docs': [], 'authors': {}, 'keywords': {}, 'citations': []}
         if src.is_dir():
             for file in src.iterdir():
-                self.add_doc(document.Load(file).doc)
+                self.add_doc(document.Load(file, cfg).doc)
         elif src.suffix == '.json':
             with open(src, 'r') as f:
                 self.db = json.load(f)
@@ -20,7 +20,7 @@ class Load:
             with sqlite3.connect(src) as conn:
                 schema.migrate(conn.cursor())
                 cursor = conn.cursor()
-                cursor.execute('SELECT doc_id, year, title, summary FROM docs')
+                cursor.execute('SELECT doc_id, year, title, abstract FROM docs')
                 for doc in cursor.fetchall():
                     self.add_doc(schema.load_doc(cursor, doc))
 

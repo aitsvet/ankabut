@@ -37,7 +37,7 @@ def join_paragraphs(sections, max_words):
             summaries[-1]['title'] = section['title']
     return summaries
 
-def run(db, cfg):
+def run(db, cfg, dst):
     client = llm.Client(cfg)
     keywords = '["' + '", "'.join(db.db['keywords'].keys()) + ']"'
     print(keywords)
@@ -64,3 +64,4 @@ def run(db, cfg):
         if not 'llm' in doc:
             doc['llm'] = []
         doc['llm'].append(json.loads(client.chat('paper', values)))
+    db.save(dst)

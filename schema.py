@@ -6,7 +6,7 @@ def migrate(cursor):
     doc_id = 'doc_id TEXT NOT NULL'
     pk = 'PRIMARY KEY (doc_id, '
     tables = {
-        'docs': ['doc_id TEXT PRIMARY KEY', 'year INTEGER NOT NULL', 'title TEXT NOT NULL', 'summary TEXT'],
+        'docs': ['doc_id TEXT PRIMARY KEY', 'year INTEGER NOT NULL', 'title TEXT NOT NULL', 'abstract TEXT'],
         'authors': ['author_id TEXT PRIMARY KEY', 'name TEXT'],
         'docs_authors': [doc_id, 'author_id TEXT NOT NULL', pk + 'author_id)'],
         'keywords': [doc_id, 'keyword TEXT NOT NULL', pk + 'keyword)'],
@@ -23,8 +23,8 @@ def migrate(cursor):
             traceback.print_exc()
 
 def store_doc(cursor, doc):
-    cursor.execute('INSERT INTO docs (doc_id, year, title, summary) VALUES (?, ?, ?, ?)',
-        (doc['path'], doc['year'], doc['title'], doc.get('summary', None)))
+    cursor.execute('INSERT INTO docs (doc_id, year, title, abstract) VALUES (?, ?, ?, ?)',
+        (doc['path'], doc['year'], doc['title'], doc.get('abstract', None)))
     doc_id = doc['path']
     for author in doc['authors']:
         name = author_name(author)
@@ -42,8 +42,8 @@ def store_doc(cursor, doc):
             cursor.execute('INSERT INTO paragraphs (doc_id, section_id, paragraph_id, content) VALUES (?, ?, ?, ?)', (doc_id, section_id, paragraph_id, content))
 
 def load_doc(cursor, doc):
-    doc_id, year, title, summary = doc
-    doc = { 'path': doc_id, 'year': year, 'title': title, 'summary': summary, 'authors': [], 'keywords': [], 'citations': [], 'sections': [] }
+    doc_id, year, title, abstract = doc
+    doc = { 'path': doc_id, 'year': year, 'title': title, 'abstract': abstract, 'authors': [], 'keywords': [], 'citations': [], 'sections': [] }
     cursor.execute('SELECT author_id FROM docs_authors WHERE doc_id = ?', (doc_id,))
     for (author_id,) in cursor.fetchall():
         doc['authors'].append(author_id)

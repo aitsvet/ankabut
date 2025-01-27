@@ -5,4 +5,4 @@ pyvis
 jq
 pandas
 openpyxl
-# graphrag
+faiss
