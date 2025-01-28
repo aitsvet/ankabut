@@ -1,0 +1,5 @@
+min_paragraph: 70
+prefix_filter:
+  - табл
+  - рис
+  - '|'

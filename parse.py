@@ -4,7 +4,7 @@ def author_name(title):
     return next((w.capitalize() for w in re.split(r'[\s,.]+', title) if len(w) > 3), None)
 
 def keywords(line):
-    return [kw.strip().lower() for kw in re.split(r'[,.]+', line) if kw]
+    return [kw.strip().lower() for kw in re.split(r'[,.;]+', line) if kw]
 
 def table_row(last, line):
     return ' | '.join([l.strip()+' '+n.strip() for l, n in zip(last.split('|'), line.split('|'))]).strip()
@@ -13,7 +13,10 @@ def word_count(doc):
     return sum([sum([len(p.split()) for p in s['content']]) for s in doc['sections'] if 'content' in s])
 
 def remove_blank_lines(text):
-    return "\n".join([line for line in text.splitlines() if line.strip()])
+    return '\n'.join([line for line in text.splitlines() if line.strip()])
+
+def sort_docs(docs):
+    return sorted(docs, key=lambda x: (x['year'], x['authors'][0]))
 
 class TreeList():
     

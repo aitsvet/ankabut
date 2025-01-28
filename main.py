@@ -16,13 +16,12 @@ def main(src, dst, cfg = {}):
     if dst.is_dir():
         convert.from_pdf(src, dst)
     else:
-        if cfg:
-            with open(cfg, 'r') as f:
-                cfg = yaml.safe_load(f)
-        db = database.Load(src, cfg)
+        db = database.Load(src)
         if dst.suffix == '.html':
             graph.authors_keywords(db, dst)
         elif cfg:
+            with open(cfg, 'r') as f:
+                cfg = yaml.safe_load(f)
             scripts.repo[cfg['script']](db, cfg, dst)
         else:
             db.save(dst)

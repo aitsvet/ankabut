@@ -13,7 +13,7 @@ class Embedder():
 
     def build_index(self):
         ids, ems = [], []
-        for doc in self.db.db['docs']:
+        for doc in self.docs:
             for (i, sec) in enumerate(doc['sections']):
                 for (j, par) in enumerate(sec['content']):
                     lower = par.strip().lower()
@@ -26,10 +26,12 @@ class Embedder():
         index.add(arr)
         return ids, index
 
-    def __init__(self, db, client: llm.Client, dst: pathlib.Path, window_size):
-        self.db = db
+    def __init__(self, db, client: llm.Client, dst: pathlib.Path, cfg):
+        self.docs = parse.sort_docs(db.db['docs'])
         self.client = client
-        self.window_size = window_size
+        self.window_size = cfg.get('window_size', 0)
+        self.title = cfg['title']
+        self.plan = cfg['plan']
         ids_file = dst.with_suffix('.ids')
         ems_file = dst.with_suffix('.ems')
         if not ids_file.exists() or not ems_file.exists():
@@ -42,41 +44,37 @@ class Embedder():
                 self.ids = f.readlines()
             self.ems = faiss.read_index(ems_file.as_posix())
 
-    def search(self, path, leaf):
+    def generate(self, path, leaf):
         input = '\n'.join([re.sub(r'^[0-9. ]+', '', p) for p in path + [leaf['title']]])
         em = self.client.embed(input)
         dists, indices = self.ems.search(numpy.array([em]), k=20)
+        sources = ''        
         leaf['sources'] = []
         for d, i in zip(dists[0], indices[0]):
-            id = {'i': self.ids[i], 'd': str(d)}
-            leaf['sources'].append(id)
-
-    def generate(self, path, leaf):
-        sources = ''
-        for src in leaf['sources']:
-            doc_id, sec_id, par_id = src['i'].split(':')
-            doc = [d for d in self.db.db['docs'] if d['path'] == doc_id][0]
+            id = self.ids[i]
+            if any(s['i'] == id for s in leaf['sources']):
+                continue
+            leaf['sources'].append({'i': id, 'd': str(d)})
+            doc_id, sec_id, par_id = id.split(':')
+            (num, doc) = [(n, d) for (n, d) in enumerate(self.docs) if d['path'] == doc_id][0]
             author = parse.author_name(doc['authors'][0])
-            sources = f'Из статьи {author} ({doc['year']}) {doc['title']}:\n\n'
+            sources += f'Из источника {num}. {author} ({doc['year']}) {doc['title']}:\n\n'
             content = doc['sections'][int(sec_id)]['content']
             par_id = int(par_id)
             for p in range(par_id - self.window_size, par_id + self.window_size):
                 if p >= 0 and p < len(content):
                     sources += content[p] + '\n\n'
         leaf['content'] = self.client.chat('generate', {
-            'title': path[0],
-            'path': path[1:] + [leaf['title']],
+            'title': self.title,
+            'plan': self.plan,
             'paragraph': leaf['title'],
             'sources': sources
         }) + '\n\n'
 
 def run(db, cfg, dst: pathlib.Path):
     if not dst.exists():
-        embedder = Embedder(db, llm.Client(cfg), dst, cfg.get('window_size', 0))
+        embedder = Embedder(db, llm.Client(cfg), dst, cfg)
         plan = parse.TreeList(cfg['plan'])
-        plan.traverse(embedder.search)
-        with open(dst, 'w') as f:
-            json.dump(plan.tree, f, indent=2, ensure_ascii=False)
         plan.traverse(embedder.generate)
         with open(dst, 'w') as f:
             json.dump(plan.tree, f, indent=2, ensure_ascii=False)
@@ -84,6 +82,8 @@ def run(db, cfg, dst: pathlib.Path):
     else:
         with open(dst, 'r') as f:
             data = json.load(f)
-    query = '.. | objects | .content? // .title? // empty'
+    query = '.. | objects | {title: .title?, content: .content?} | select(.title != null or .content != null)'
     for line in jq.compile(query).input(data).all():
-        print(line)
+        print(line['title'])
+        if 'content' in line and line['content']:
+            print(line['content'])

@@ -4,7 +4,7 @@ import parse
 def run(db, cfg, dst):
     client = llm.Client(cfg)
     plan = cfg['plan']
-    for doc in sorted(db.db['docs'], key=lambda x: x['year']):
+    for doc in parse.sort_docs(db.db['docs']):
         author = parse.author_name(doc['authors'][0])
         print(doc['year'], author, doc['title'], parse.word_count(doc), '\n')
         source = '# ' + doc['title'] + '\n\n'
@@ -15,8 +15,6 @@ def run(db, cfg, dst):
                 lower = par.strip().lower()
                 if not lower.startswith('табл') and not lower.startswith('| '):
                     source += par + '\n\n'
-        print(source)
-        continue
         plan = client.chat('plan', {
             'title': cfg['title'],
             'plan': plan,

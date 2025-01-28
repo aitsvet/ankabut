@@ -29,16 +29,17 @@ class Load:
     def add_line(self, line):
         line = line.replace('*', '')
         lower = line.lower()
-        if line.startswith('# '):
-            self.field = 'content'
-            self.doc['title'] = line[2:].strip().capitalize()
-        elif line.startswith('##'):
-            if any(t in lower for t in ['список', 'литератур', 'источ', 'reference']) and not 'обзор' in lower:
-                self.field = 'citations'
+        if line.startswith('#'):
+            if not 'title' in self.doc:
+                self.doc['title'] = line[2:].strip().capitalize()
+                self.field = 'content'
             else:
-                if self.doc['sections'][0] == {}:
-                    self.doc['sections'] = []
-                self.doc['sections'].append({'title': re.sub(r'^#+', '', line).strip()})
+                if any(t in lower for t in ['список', 'литератур', 'источ', 'reference']) and not 'обзор' in lower:
+                    self.field = 'citations'
+                else:
+                    if self.doc['sections'][0] == {}:
+                        self.doc['sections'] = []
+                    self.doc['sections'].append({'title': re.sub(r'^#+', '', line).strip()})
         elif lower.startswith('аннотация') or lower.startswith('abstract'):
             self.doc['abstract'] = line[10:].strip()
         elif lower.startswith('ключевые слова') or lower.startswith('keywords'):

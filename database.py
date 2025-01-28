@@ -1,4 +1,5 @@
 import json
+import yaml
 import sqlite3
 from pathlib import Path
 
@@ -8,7 +9,12 @@ import document
 
 class Load:
 
-    def __init__(self, src: Path, cfg):
+    def __init__(self, src: Path):
+        try:
+            with open('config.yaml', 'r') as f:
+                cfg = yaml.safe_load(f)
+        except:
+            cfg = None
         self.db = {'docs': [], 'authors': {}, 'keywords': {}, 'citations': []}
         if src.is_dir():
             for file in src.iterdir():
@@ -40,7 +46,7 @@ class Load:
     def save(self, dst: Path):
         if dst.suffix == '.json':
             with open(dst, 'w') as f:
-                json.dump(self.db, f, ensure_ascii=False)
+                json.dump(self.db, f, indent=4, ensure_ascii=False)
         elif dst.suffix == '.sqlite':
             with sqlite3.connect(dst) as conn:
                 cursor = conn.cursor()
