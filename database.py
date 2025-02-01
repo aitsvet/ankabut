@@ -9,12 +9,8 @@ import document
 
 class Load:
 
-    def __init__(self, src: Path):
-        try:
-            with open('config.yaml', 'r') as f:
-                cfg = yaml.safe_load(f)
-        except:
-            cfg = None
+    def __init__(self, src: Path, cfg = {}):
+        parse.extend_config('configs/document.yaml', cfg)
         self.db = {'docs': [], 'authors': {}, 'keywords': {}, 'citations': []}
         if src.is_dir():
             for file in src.iterdir():
