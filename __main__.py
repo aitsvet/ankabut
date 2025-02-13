@@ -2,7 +2,7 @@ import os
 import sys
 import yaml
 
-import convert
+import zotero
 import graph
 import database
 import pathlib
@@ -14,7 +14,7 @@ def main(src, dst, cfg = {}):
     if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite']):
         os.makedirs(dst, exist_ok=True)
     if dst.is_dir():
-        convert.from_pdf(src, dst)
+        zotero.load(src, dst)
     else:
         db = database.Load(src)
         if dst.suffix == '.html':

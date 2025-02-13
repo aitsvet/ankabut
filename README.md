@@ -1,23 +1,18 @@
 # Ankabut
 
 An automated LLM prompting framework for:
-
-- [preprocessing journal articles into a uniform structure](#preprocessing-journal-articles);
-
-- [extracting content and metadata from preprocessed articles](#extracting-content-and-metadata-from-articles);
-
-- [indexing and searching with LLM embeddings](#indexing-and-searching-with-llm-embeddings);
-
-- [generating new article structure plans](#generating-new-article-structure-plans);
-
-- [generating article content for specified plan](#generating-article-content-for-specified-plan).
+1. [preprocessing journal articles into a uniform structure](#preprocessing-journal-articles);
+2. [extracting content and metadata from preprocessed articles](#extracting-content-and-metadata-from-articles);
+3. [indexing and searching with LLM embeddings](#indexing-and-searching-with-llm-embeddings);
+4. [generating new article structure plans](#generating-new-article-structure-plans);
+5. [generating article content for specified plan](#generating-article-content-for-specified-plan).
 
 ## Preprocessing journal articles
 
 ```bash
-python . "<src dir>" "<dst dir>"
+python . "<src>.rdf" "<dst dir>"
 
-"<src dir>" - source directory containing Zotero RDF as linked PDF files
+"<src>.rdf" - path to source Zotero RDF file containing links to PDF attachments
 "<dst dir>" - destination directory where preprocessed article files shall be stored
 ```
 
@@ -30,11 +25,11 @@ python . "<src dir>" "<dst dir>"
 ...
 <article id (DOI, URL, etc)>
 
-<year of publication>, <journal name>, <issuse>, <volume>, etc
+<year of publication> <journal name> <issue> <volume> etc
 
-<author name>, <author title>, <institution>, etc
+<author name> <author title> <institution> etc
 ...
-<author name>, <author title>, <institution>, etc
+<author name> <author title> <institution> etc
 
 # <article title>
 
@@ -78,37 +73,37 @@ python . "<src dir>" "<dst>.json"
             "ids": [ "DOI", "URL", "etc" ],
             "year": "2025",
             "authors": [
-                "Author Name, Title, Institution", ...
+                "Author Name, Title, Institution", // ...
             ],
             "title": "<article title>",
             "abstract": "<...>",
-            "keywords": [ "keyword", ... ],
+            "keywords": [ "keyword", /* ... */ ],
             "sections": [
                 {
                     [ "title": "<section title>", ]
                     "content": [
-                        "<paragraph>", ...
+                        "<paragraph>", // ...
                     ]
-                }, ...
+                }, // ...
             ],
             "citations": [
-                "Author, Title ...", ...
+                "Author, Title ...", // ...
             ]
         }
     ],
     "authors": {
         "<author name>": [
-            "DOI", "DOI", "DOI", ...
+            "DOI", "DOI", "DOI", // ...
         ]
     },
     "keywords": {
-        "keyword": <occurence count>, ...
+        "keyword": 1, // ... occurence count
     },
     "citations": [
-        "Author, Title ...", ...
+        "Author, Title ...", // ...
     ],
     "paragraph_ids": [
-        "<DOI|URL|etc>:<section index>:<paragraph index>", ...
+        "<DOI|URL|etc>:<section index>:<paragraph index>", // ...
     ]
 }
 ```
@@ -147,9 +142,9 @@ echo "query" | python . "<src>.json" "<src>.idx" configs/embed.yaml
     "results": [
         {
             "id": "<DOI|URL|etc>:<section index>:<paragraph index>",
-            "distance": <distance between query and paragraph>,
+            "distance": 0.54321098, // distance between query and paragraph
             "content": "<paragraph>"
-        }, ...  
+        }, // ...  
     ]
 }
 ```
