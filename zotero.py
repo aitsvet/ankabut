@@ -21,42 +21,58 @@ def load(src: Path, dst: Path):
         return elem.strip() if elem != default else default
     converter = PdfConverter(artifact_dict=create_model_dict())
     journals = root.findall('bib:Journal', nss)
-    attachments = root.findall('z:Attachment/rdf:resource', nss)
+    attachments = root.findall('z:Attachment', nss)
     for (i, article) in enumerate(root.findall('bib:Article', nss)):
-        journal = text(article, 'dcterms:isPartOf/bib:Journal/dc:title')
-        if not journal:
-            journal = text(journals[i], 'dc:title')
-            volume = text(journals[i], 'prism:volume')
-            number = text(journals[i], 'prism:number')
+        partOf = article.find('dcterms:isPartOf', nss)
+        journal = partOf.find('bib:Journal', nss)
+        if journal is None:
+            partOf = attrib(partOf, 'resource')
+            journal = [j for j in journals if attrib(j, 'about') == partOf][0]
+        volume = text(journal, 'prism:volume')
+        volume = ('Т.' + volume) if volume else ''
+        number = text(journal, 'prism:number')
+        number = ('№' + number) if number else ''
+        doi = text(journal, 'dc:identifier')
+        journal = text(journal, 'dc:title')
         url = attrib(article, 'about')
-        doi = text(article, 'dcterms:isPartOf/bib:Journal/dc:identifier')
-        if not doi:
-            doi = text(journals[i], 'dc:identifier')
         title = text(article, 'dc:title')
         year = text(article, 'dc:date')
-        language = text(article, 'z:language')
         pages = text(article, 'bib:pages')
-        source_path = src.parent.joinpath(attrib(attachments[i], 'resource')).as_posix()
+        pages = ('С.' + pages) if pages else ''
+        link = article.find('link:link', nss)
+        if link is None:
+            continue
+        link = attrib(link, 'resource')
+        attachment = [a.find('rdf:resource', nss) for a in attachments if attrib(a, 'about') == link][0]
+        source_path = src.parent.joinpath(attrib(attachment, 'resource')).as_posix()
         rendered = converter(source_path)
         source, _, _ = text_from_rendered(rendered)
         output = dst.joinpath(Path(source_path).with_suffix('.md').name)
         with open(output, 'w+') as f:
             lower = source.lower()
-            start = max([(lower.index(m), m) for m in ['аннотация', 'abstract', title.lower()]])
-            for line in source[:start].splitlines():
-                m = re.match('doi ?([0-9-/]+)', line.lower())
-                if not doi and m.lastgroup:
-                    doi = m.lastgroup
+            start = 0
+            for m in ['аннотация', 'abstract', title.lower()]:
+                if m in lower and lower.index(m) > start:
+                    start = lower.index(m)
+            if start:
+                for line in source[:start].splitlines():
+                    m = re.match('doi ?([0-9-/]+)', line.lower())
+                    if not doi and m.lastgroup:
+                        doi = m.lastgroup
             f.write('\n'.join(filter(None, [url, doi])) + '\n\n')
-            f.write(', '.join(filter(None, [year, language, journal, volume, number, pages])) + '\n\n')
+            f.write(', '.join(filter('', [year, journal, volume, number, pages])) + '\n\n')
             for author in article.findall('bib:authors/rdf:Seq/rdf:li/foaf:Person', nss):
                 names = [text(author, 'foaf:'+n) for n in ['surname', 'givenName']]
                 f.write(' '.join(filter(None, names)) + '\n')
-            f.write(f'\n# {title}\n\n')
+            f.write(f'\n# {title}\n\nTags: ')
             tags = [text(tag, 'rdf:value') for tag in article.findall('dc:subject/z:AutomaticTag', nss)]
             f.write(', '.join(filter(None, tags)) + '\n\n')
-            if lower[start:].startswith(title.lower()):
+            if start and lower[start:].startswith(title.lower()):
                 start += len(title)
-            for line in source[start:].splitlines():
-                f.write(line if any(c in line for c in ['=', '-', '/']) else line.replace('*', ''))
+            for line in source[start:].splitlines(True):
+                if not any(c in line for c in ['=', '/']):
+                    line = line.replace('**', '')
+                    line = re.sub(r'^\*+', '', line)
+                    line = re.sub(r'\*+(\n*)$', r'\1', line)
+                f.write(line)
             print(f'Written {output}')
