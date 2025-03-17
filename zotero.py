@@ -1,11 +1,8 @@
-from marker.converters.pdf import PdfConverter
-from marker.models import create_model_dict
-from marker.output import text_from_rendered
-
 from pathlib import Path
 
 import re
 import xml.etree.ElementTree as ET
+import pdf
 
 def attrib(elem, name, default = None):
     return elem.attrib.get('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}' + name, default)
@@ -19,7 +16,7 @@ def load(src: Path, dst: Path):
     def text(parent, path, default = None):
         elem = parent.findtext(path, default, nss)
         return elem.strip() if elem != default else default
-    converter = PdfConverter(artifact_dict=create_model_dict())
+    reader = pdf.Reader()
     journals = root.findall('bib:Journal', nss)
     attachments = root.findall('z:Attachment', nss)
     for (i, article) in enumerate(root.findall('bib:Article', nss)):
@@ -45,8 +42,7 @@ def load(src: Path, dst: Path):
         link = attrib(link, 'resource')
         attachment = [a.find('rdf:resource', nss) for a in attachments if attrib(a, 'about') == link][0]
         source_path = src.parent.joinpath(attrib(attachment, 'resource')).as_posix()
-        rendered = converter(source_path)
-        source, _, _ = text_from_rendered(rendered)
+        source = reader.extract_markdown_from(source_path)
         output = dst.joinpath(Path(source_path).with_suffix('.md').name)
         with open(output, 'w+') as f:
             sourcelines = []

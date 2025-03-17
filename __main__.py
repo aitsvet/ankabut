@@ -7,6 +7,7 @@ import graph
 import database
 import pathlib
 import scripts
+import pdf
 
 def main(src, dst, cfg = {}):
     src = pathlib.Path(src)
@@ -14,7 +15,10 @@ def main(src, dst, cfg = {}):
     if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite']):
         os.makedirs(dst, exist_ok=True)
     if dst.is_dir():
-        zotero.load(src, dst)
+        if src.suffix == '.pdf':
+            print(pdf.Reader().extract_markdown_from(src.as_posix()))
+        else:
+            zotero.load(src, dst)
     else:
         db = database.Load(src)
         if dst.suffix == '.html':
