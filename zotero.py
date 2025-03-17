@@ -49,30 +49,40 @@ def load(src: Path, dst: Path):
         source, _, _ = text_from_rendered(rendered)
         output = dst.joinpath(Path(source_path).with_suffix('.md').name)
         with open(output, 'w+') as f:
-            lower = source.lower()
-            start = 0
-            for m in ['аннотация', 'abstract', title.lower()]:
-                if m in lower and lower.index(m) > start:
-                    start = lower.index(m)
-            if start:
-                for line in source[:start].splitlines():
-                    m = re.match('doi ?([0-9-/]+)', line.lower())
-                    if not doi and m.lastgroup:
-                        doi = m.lastgroup
+            sourcelines = []
+            lowerlines = []
+            for line in source.splitlines():
+                l = line
+                if not any(c in line for c in ['=', '/']):
+                    l = l.replace('**', '').replace('©', '')
+                    l = re.sub(r'^\*+', '', l)
+                    l = re.sub(r'\*+(\n*)$', r'\1', l)
+                sourcelines.append(l)
+                lowerlines.append(l.lower())
+            for line in sourcelines:
+                m = re.match('doi ?([0-9-/]+)', line.lower())
+                if not doi and m.lastgroup:
+                    doi = m.lastgroup
             f.write('\n'.join(filter(None, [url, doi])) + '\n\n')
-            f.write(', '.join(filter('', [year, journal, volume, number, pages])) + '\n\n')
+            f.write(', '.join(filter(None, [year, journal, volume, number, pages])) + '\n\n')
             for author in article.findall('bib:authors/rdf:Seq/rdf:li/foaf:Person', nss):
-                names = [text(author, 'foaf:'+n) for n in ['surname', 'givenName']]
-                f.write(' '.join(filter(None, names)) + '\n')
+                surname = text(author, 'foaf:surname')
+                givenName = text(author, 'foaf:givenName')
+                name = f'{surname} {givenName}'
+                for line in sourcelines:
+                    if surname in line and givenName in line and len(line) > len(name):
+                        name = line
+                f.write(name + '\n')
             f.write(f'\n# {title}\n\nTags: ')
             tags = [text(tag, 'rdf:value') for tag in article.findall('dc:subject/z:AutomaticTag', nss)]
             f.write(', '.join(filter(None, tags)) + '\n\n')
-            if start and lower[start:].startswith(title.lower()):
-                start += len(title)
-            for line in source[start:].splitlines(True):
-                if not any(c in line for c in ['=', '/']):
-                    line = line.replace('**', '')
-                    line = re.sub(r'^\*+', '', line)
-                    line = re.sub(r'\*+(\n*)$', r'\1', line)
-                f.write(line)
+            start = 0
+            lowertitle = title.lower()
+            for (newstart, line) in enumerate(lowerlines[:len(lowerlines) // 5]):
+                for m in ['аннотация', 'abstract', lowertitle]:
+                    if m in line:
+                        start = newstart
+            if lowertitle in lowerlines[start]:
+                start += 1
+            f.write('\n'.join(sourcelines[start:]))
             print(f'Written {output}')
