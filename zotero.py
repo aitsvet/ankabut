@@ -19,7 +19,7 @@ def load(src: Path, dst: Path):
     reader = pdf.Reader()
     journals = root.findall('bib:Journal', nss)
     attachments = root.findall('z:Attachment', nss)
-    for (i, article) in enumerate(root.findall('bib:Article', nss)):
+    for article in root.findall('bib:Article', nss) + root.findall('rdf:Description', nss):
         partOf = article.find('dcterms:isPartOf', nss)
         journal = partOf.find('bib:Journal', nss)
         if journal is None:
@@ -57,7 +57,7 @@ def load(src: Path, dst: Path):
                 lowerlines.append(l.lower())
             for line in sourcelines:
                 m = re.match('doi ?([0-9-/]+)', line.lower())
-                if not doi and m.lastgroup:
+                if not doi and m and m.lastgroup:
                     doi = m.lastgroup
             f.write('\n'.join(filter(None, [url, doi])) + '\n\n')
             f.write(', '.join(filter(None, [year, journal, volume, number, pages])) + '\n\n')
@@ -75,10 +75,13 @@ def load(src: Path, dst: Path):
             start = 0
             lowertitle = title.lower()
             for (newstart, line) in enumerate(lowerlines[:len(lowerlines) // 5]):
-                for m in ['аннотация', 'abstract', lowertitle]:
-                    if m in line:
-                        start = newstart
-            if lowertitle in lowerlines[start]:
-                start += 1
+                if lowertitle in line:
+                    start = newstart + 1
+                    break
+                if 'аннотация' in line:
+                    start = newstart
+                    break
+                if 'abstract' in line:
+                    start = newstart
             f.write('\n'.join(sourcelines[start:]))
             print(f'Written {output}')
