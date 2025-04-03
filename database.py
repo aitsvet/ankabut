@@ -1,5 +1,4 @@
 import json
-import yaml
 import sqlite3
 from pathlib import Path
 

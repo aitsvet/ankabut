@@ -33,6 +33,8 @@ python . "<src>.rdf" "<dst dir>"
 
 # <article title>
 
+Tags: <from Zotero> ...
+
 [Abstract. ...]
 
 [Keywords: ...]
@@ -46,11 +48,11 @@ python . "<src>.rdf" "<dst dir>"
 [
 ## (References|Literature|etc)
 
-[1. ] Author, Title ...
+[1. ] <Author>, <Title> etc
 
 ...
 
-[N. ] Author, Title ...
+[N. ] <Author>, <Title> etc
 ]
 ```
 
@@ -160,7 +162,7 @@ python . "<src>.json" "<src>.idx" configs/plan.yaml
 
 1. Starts with an article structure plan specified in [`configs/plan.yaml`](configs/plan.yaml).
 2. Walks through articles in the source JSON file in order specified in the config.
-3. For each articles uses the specified LLM to refine the plan:
+3. For each article uses the specified LLM to refine the plan:
     1. If the current article has the `plan` field in the source JSON, uses it as the current plan and continues with next acticle.
     2. Collects article content paragraphs in each section.
     3. In case the collected content overfits the specified LLM context size,  summarises the collected content.

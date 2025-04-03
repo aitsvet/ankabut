@@ -6,17 +6,29 @@ import parse
 class Load:
 
     def __init__(self, path, cfg):
-        self.doc = {'path': path.name, 'authors': [], 'sections': [{}], 'citations': []}
-        self.field = 'authors'
+        self.doc = {'path': path.name, 'ids': [], 'authors': [], 'sections': [{}], 'citations': []}
+        self.field = 'content'
         self.paragraph = []
         self.prefix_filter = cfg.get('prefix_filter', [])
         self.min_paragraph = cfg.get('min_paragraph', None)
         number = 1
         try:
             with open(path, 'r') as f:
-                line = f.readline()
-                self.doc['year'] = line.strip()
-                line = f.readline()
+                line = f.readline().strip()
+                while len(line) > 0:
+                    self.doc['ids'].append(line)
+                    line = f.readline().strip()
+                self.doc['journal'] = f.readline().strip()
+                self.doc['year'] = self.doc['journal'][:4]
+                _, line = f.readline(), f.readline().strip()
+                while len(line) > 0:
+                    self.doc['authors'].append(line)
+                    line = f.readline().strip()
+                self.doc['title'] = re.sub(r'^#+', '', f.readline()).strip()
+                _, line = f.readline(), f.readline()
+                if line.startswith('Tags: '):
+                    self.doc['tags'] = parse.keywords(line[6:])
+                    _, line = f.readline(), f.readline()
                 while line:
                     self.add_line(line.strip())
                     line = f.readline()
@@ -30,16 +42,13 @@ class Load:
         line = line.replace('*', '')
         lower = line.lower()
         if line.startswith('#'):
-            if not 'title' in self.doc:
-                self.doc['title'] = line[2:].strip().capitalize()
-                self.field = 'content'
+            if any(t in lower for t in ['список', 'литератур', 'библиог', 'источник', 'примечания', 'reference']) \
+                and not any(t in lower for t in ['источников,', 'источники ', 'обзор']):
+                self.field = 'citations'
             else:
-                if any(t in lower for t in ['список', 'литератур', 'источ', 'reference']) and not 'обзор' in lower:
-                    self.field = 'citations'
-                else:
-                    if self.doc['sections'][0] == {}:
-                        self.doc['sections'] = []
-                    self.doc['sections'].append({'title': re.sub(r'^#+', '', line).strip()})
+                if self.doc['sections'][0] == {}:
+                    self.doc['sections'] = []
+                self.doc['sections'].append({'title': re.sub(r'^#+', '', line).strip()})
         elif lower.startswith('аннотация') or lower.startswith('abstract'):
             self.doc['abstract'] = line[10:].strip()
         elif lower.startswith('ключевые слова') or lower.startswith('keywords'):
