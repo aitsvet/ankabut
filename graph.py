@@ -1,6 +1,6 @@
 import numpy as np
 
-from parse import author_name
+from parser import author_name
 from pyvis.network import Network
 
 def authors_keywords(db, dst):

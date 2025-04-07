@@ -2,7 +2,7 @@ import re
 import yaml
 
 def author_name(title):
-    return next((w.capitalize() for w in re.split(r'[\s,.]+', title) if len(w) > 3), None)
+    return next((w.capitalize() for w in re.split(r'[\s,.]+', title) if len(w) > 2), None)
 
 def keywords(line):
     return [kw.strip().lower() for kw in re.split(r'[,.;]+', line) if kw]
@@ -29,3 +29,9 @@ def extend_config(path, cfg):
                 if k not in cfg:
                     cfg[k] = v
     except: pass
+
+def strip_thoughts(answer):
+    start = 0
+    if '</think>' in answer:
+        start = answer.index('</think>') + 8
+    return answer[start:]

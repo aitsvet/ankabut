@@ -1,7 +1,7 @@
 import re
 import traceback
 
-import parse
+import parser
 
 class Load:
 
@@ -27,7 +27,7 @@ class Load:
                 self.doc['title'] = re.sub(r'^#+', '', f.readline()).strip()
                 _, line = f.readline(), f.readline()
                 if line.startswith('Tags: '):
-                    self.doc['tags'] = parse.keywords(line[6:])
+                    self.doc['tags'] = parser.keywords(line[6:])
                     _, line = f.readline(), f.readline()
                 while line:
                     self.add_line(line.strip())
@@ -51,13 +51,13 @@ class Load:
                 self.doc['sections'].append({'title': re.sub(r'^#+', '', line).strip()})
         elif lower.startswith('аннотация') or lower.startswith('abstract'):
             self.doc['abstract'] = line[10:].strip()
-        elif lower.startswith('ключевые слова') or lower.startswith('keywords'):
-            self.doc['keywords'] = parse.keywords(line[15:])
+        elif lower.startswith('ключевые слова') or lower.startswith('keywords') or lower.startswith('key words'):
+            self.doc['keywords'] = parser.keywords(line[15:])
         elif len(line) > 0:
             if self.field == 'citations':
                 line = re.sub(r'^[0-9]+\.', '', line).strip()
             elif len(self.paragraph) > 0 and re.match(r'^\| +[|а-яa-z]', line.strip()):
-                line = parse.table_row(self.paragraph[-1], line)
+                line = parser.table_row(self.paragraph[-1], line)
                 self.paragraph = self.paragraph[:-1]
             self.paragraph.append(line)
         else:

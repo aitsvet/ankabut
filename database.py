@@ -3,13 +3,13 @@ import sqlite3
 from pathlib import Path
 
 import schema
-import parse
+import parser
 import document
 
 class Load:
 
     def __init__(self, src: Path, cfg = {}):
-        parse.extend_config('configs/document.yaml', cfg)
+        parser.extend_config('configs/document.yaml', cfg)
         self.db = {'docs': [], 'authors': {}, 'keywords': {}, 'citations': []}
         if src.is_dir():
             for file in src.iterdir():
@@ -32,7 +32,7 @@ class Load:
             for kw in doc['keywords']:
                 self.db['keywords'][kw] = self.db['keywords'].get(kw, 0) + 1
         for author in doc['authors']:
-            name = parse.author_name(author)
+            name = parser.author_name(author)
             if name:
                 if not name in self.db['authors']:
                     self.db['authors'][name] = []

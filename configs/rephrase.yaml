@@ -1,4 +1,4 @@
-script: phrases.py
+script: rephrase.py
 prompts:
   rephrase:
     # model: rscr/ruadapt_qwen2.5_32b:Q4_K_M

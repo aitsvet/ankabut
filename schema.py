@@ -1,6 +1,6 @@
 import traceback
 
-from parse import author_name
+from parser import author_name
 
 def migrate(cursor):
     doc_id = 'doc_id TEXT NOT NULL'

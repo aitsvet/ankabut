@@ -113,20 +113,20 @@ python . "<src dir>" "<dst>.json"
 ## Indexing and searching with LLM embeddings
 
 ```bash
-python . "<src>.json" "<dst>.idx" configs/embed.yaml
+python . "<src>.json" "<dst>.faiss" configs/embed.yaml
 
 "<src>.json" - source JSON file containing article content and metadata
-"<dst>.idx" - non-existing destination search index file
+"<dst>.faiss" - non-existing destination search index file
 ```
 
 1. Retrieves embeddings for each paragraph of each section of each article in the source JSON file from an LLM, cofigured in [`configs/embed.yaml`](configs/embed.yaml).
 2. Builds a [Faiss](https://github.com/facebookresearch/faiss) search index from those embeddings and stores to the destination file.
 
 ```bash
-echo "query" | python . "<src>.json" "<src>.idx" configs/embed.yaml
+echo "query" | python . "<src>.json" "<src>.faiss" configs/embed.yaml
 
 "<src>.json" - source JSON file containing article content and metadata
-"<src>.idx" - existing search index file
+"<src>.faiss" - existing search index file
 ```
 
 1. Reads the search query from the standard input.
@@ -140,7 +140,7 @@ echo "query" | python . "<src>.json" "<src>.idx" configs/embed.yaml
     "query": "<query>",
     "model": "<embedding model name>",
     "source": "<src>.json",
-    "index": "<src>.idx",
+    "index": "<src>.faiss",
     "results": [
         {
             "id": "<DOI|URL|etc>:<section index>:<paragraph index>",
@@ -154,10 +154,10 @@ echo "query" | python . "<src>.json" "<src>.idx" configs/embed.yaml
 ## Generating new article structure plans
 
 ```bash
-python . "<src>.json" "<src>.idx" configs/plan.yaml
+python . "<src>.json" "<src>.faiss" configs/plan.yaml
 
 "<src>.json" - source JSON file containing article content and metadata
-"<src>.idx" - existing search index file
+"<src>.faiss" - existing search index file
 ```
 
 1. Starts with an article structure plan specified in [`configs/plan.yaml`](configs/plan.yaml).
@@ -173,10 +173,10 @@ python . "<src>.json" "<src>.idx" configs/plan.yaml
 ## Generating article content for specified plan
 
 ```bash
-python . "<src>.json" "<src>.idx" configs/generate.yaml
+python . "<src>.json" "<src>.faiss" configs/generate.yaml
 
 "<src>.json" - source JSON file containing article content and metadata
-"<src>.idx" - existing search index file
+"<src>.faiss" - existing search index file
 ```
 
 1. Starts with an article structure plan specified in [`configs/generate.yaml`](configs/generate.yaml).

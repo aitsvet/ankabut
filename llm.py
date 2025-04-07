@@ -3,16 +3,16 @@ import datetime
 
 from statistics import mean, stdev
 
-import parse
+import parser
 
 def log(info, debug = ''):
     print(str(datetime.datetime.now()).split('.')[0], info + '\n')
-    # print(debug + '\n')
+    print(debug + '\n')
 
 class Client:
 
     def __init__(self, cfg = {}):
-        parse.extend_config('configs/llm.yaml', cfg)
+        parser.extend_config('configs/llm.yaml', cfg)
         self.headers = {'Authorization': 'Bearer ' + cfg['token']} if 'token' in cfg else {}
         self.client = ollama.Client(host=cfg.get('host', None), headers=self.headers)
         self.prompts = cfg['prompts']

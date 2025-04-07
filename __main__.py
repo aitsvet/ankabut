@@ -12,7 +12,7 @@ import pdf
 def main(src, dst, cfg = {}):
     src = pathlib.Path(src)
     dst = pathlib.Path(dst)
-    if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite']):
+    if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite', '.faiss']):
         os.makedirs(dst, exist_ok=True)
     if dst.is_dir():
         if src.suffix == '.pdf':
