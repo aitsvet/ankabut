@@ -35,21 +35,39 @@ class Index:
     def search(self, input, limit = 0):
         em = self.client.embed(input)
         dists, ids = self.ems.search(numpy.array([em]), k=self.max_samples)
-        sources_dist = []
+        sources_set = {}
         for dist, id in zip(dists[0], ids[0]):
             if self.threshold and dist > self.threshold:
                 continue
             id = self.ids[id]
             doc_id, sec_id, par_id = id.split(':')
             (num, doc) = [(n, d) for (n, d) in enumerate(self.docs) if d['path'] == doc_id][0]
-            author = parser.author_name(doc['authors'][0])
-            c = f'Из источника {num+1}. {author} ({doc['year']}) {doc['title']}:\n\n'
-            content = doc['sections'][int(sec_id)]['content']
-            par_id = int(par_id)
+            sec_id, par_id = int(sec_id), int(par_id)
+            content = doc['sections'][sec_id]['content']
+            if not num in sources_set:
+                sources_set[num] = {}
+            if not sec_id in sources_set[num]:
+                sources_set[num][sec_id] = {}
             for p in range(par_id - self.window_size, par_id + self.window_size + 1):
                 if p >= 0 and p < len(content):
-                    c += re.sub(r'\[[, 0-9]+\]', '', content[p]) + '\n\n'
+                    sources_set[num][sec_id][p] = dist
+        sources_dist = []
+        for (num, secs) in sorted(sources_set.items()):
+            doc = self.docs[num]
+            min_dist = 0.0
+            c = ''
+            for (sec_id, pars) in sorted(secs.items()):
+                content = doc['sections'][sec_id]['content']
+                for (par_id, dist) in sorted(pars.items()):
+                    if dist < min_dist:
+                        min_dist = dist
+                    c += re.sub(r'\[[, 0-9]+\]', '', content[par_id]) + '\n\n'
+            author = parser.author_name(doc['authors'][0])
+            c = f'Из источника {num+1}. {author} ({doc['year']}) {doc['title']}:\n\n' + c
+            sources_dist.append({'c': c, 'd': min_dist})
+        result = []
+        for s in sorted(sources_dist, key=lambda s: s['d']):
             if limit <= 0 or len(c) < limit:
-                sources_dist.append({'c': c, 'd': dist})
+                result.append(s['c'])
                 limit -= len(c)
-        return map(lambda s: s['c'], sorted(sources_dist, key=lambda s: s['d']))
+        return result
