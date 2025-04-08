@@ -19,6 +19,5 @@ def authors_keywords(db, dst):
             for keyword in doc['keywords']:
                 if db.db['keywords'][keyword] > 1:
                     net.add_edge(doc['path'], keyword, weight=10)
-
     net.toggle_physics(True)
     net.show(dst, notebook=False)

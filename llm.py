@@ -7,7 +7,7 @@ import parser
 
 def log(info, debug = ''):
     print(str(datetime.datetime.now()).split('.')[0], info + '\n')
-    print(debug + '\n')
+    # print(debug + '\n')
 
 class Client:
 

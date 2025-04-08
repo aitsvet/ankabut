@@ -41,4 +41,4 @@ class List():
                 self._traverse(visitor, node['children'], path + [node['title']])
 
     def traverse(self, visitor):
-        self._traverse(visitor, self.tree, [])
+        self._traverse(visitor, self.tree[1:-1], [])

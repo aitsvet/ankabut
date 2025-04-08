@@ -18,14 +18,11 @@ class New():
         self.limit = int(gen_cfg['options'].get('num_ctx', 8192) * gen_cfg.get('token_factor', 3.0))
         print(f'generation sources list limit: {self.limit}\n')
         self.template = gen_cfg['template']
-    
-    def generate(self):
-        self.tree.traverse(self.generator)
 
-    def rewrite(self):
-        self.tree.traverse(self.rewriter)
+    def chat(self, prompt, values):
+        return parser.strip_thoughts(self.embedder.client.chat(prompt, values))
 
-    def build(self, head, current, tail):
+    def build(self, head, current = None, tail = None):
         field = head
         source = f'# {self.title}\n\n## 1. Введение\n\n'
         query = '.. | objects | {title: .title?, generate: .generate?, rewrite: .rewrite?} | select(.title != null or .content != null)'
@@ -42,9 +39,9 @@ class New():
         return source
 
     def generator(self, path, node):
-        if 'children' in node:
+        if 'children' in node or 'generate' in node:
             return
-        draft = self.build('generate', node['title'], 'generate')
+        draft = self.build('generate')
         paragraph = '\n'.join(path + [node['title']])
         values = {'title': self.title, 'plan': self.plan, 'draft': draft, 'paragraph': paragraph, 'sources': ''}
         limit = self.limit - len(self.template.format(**values))
@@ -52,11 +49,17 @@ class New():
         sources = list(self.embedder.search(input, limit))
         sources.reverse()
         values['sources'] = '\n'.join(sources)
-        node['generate'] = parser.strip_thoughts(self.embedder.client.chat('generate', values)) + '\n\n'
+        node['generate'] = self.chat('generate', values)
         print(node['generate'])
         self.tree.save()
+    
+    def generate(self):
+        self.tree.traverse(self.generator)
+        return self.build('generate')
 
     def rewriter(self, path, node):
+        if 'children' in node or 'rewrite' in node:
+            return
         source = self.build('rewrite', node['title'], 'generate')
         node['rewrite'] = parser.strip_thoughts(
             self.embedder.client.chat('rewrite_paragraph', {
@@ -65,3 +68,14 @@ class New():
             }))
         print(node['rewrite'])
         self.tree.save()
+
+    def rewrite(self):
+        self.tree.traverse(self.rewriter)
+        source = self.build('rewrite')
+        values = {'title': self.tree.tree[0]['title'], 'source': source}
+        intro = self.chat('write_paragraph', values)
+        self.tree.tree[0] = {'rewrite': intro}
+        values = {'title': self.tree.tree[-1]['title'], 'source': source}
+        outro = self.chat('write_paragraph', values)
+        self.tree.tree[-1] = {'rewrite': outro}
+        return self.build('rewrite')

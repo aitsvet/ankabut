@@ -3,9 +3,6 @@ prompts:
   embed:
     window_size: 0
     max_samples: 20
-    # threshold: 0.0
     model: snowflake-arctic-embed2:latest
-    # model: bge-m3:latest
     options:
       num_ctx: 8192
-      # num_ctx: 131072
