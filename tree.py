@@ -18,7 +18,7 @@ class List():
             number_part = re.match(r'^\s*([0-9.]+)\s*', line.strip())
             levels = number_part.group(1).split('.')
             item = {'title': line.strip()}
-            depth = len(levels)
+            depth = len(levels)-1
             while len(stack) >= depth:
                 stack.pop()
             if stack:

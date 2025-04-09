@@ -1,6 +1,6 @@
 import pathlib
 
-import generator
+import rewriter
     
 def run(db, cfg, dst: pathlib.Path):
-    print(generator.New(db, dst, cfg).rewrite())
+    print(rewriter.New(db, dst, cfg).rewrite())

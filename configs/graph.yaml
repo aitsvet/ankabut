@@ -1,0 +1,32 @@
+script: graph.py
+threshold:
+  keytags: 1
+  levenshtein: 3
+width: 1050px
+height: 100%
+edge:
+  weight: 10
+author:
+  shape: ellips
+  color: green
+  font:
+    color: white
+keyword:
+  shape: box
+  color: orange
+  font:
+    color: black
+doc:
+  shape: circle
+  color: lightblue
+  font:
+    color: black
+synonyms:
+  zakat: закят
+  banking: банкинг
+  blockchain: блокчейн
+  cryptocurrency: криптовалюта
+  "islamic fintech": исламский финтех
+  "islamic finance": исламские финансы
+  "islamic bank": исламские банки
+  "sharia law": шариат

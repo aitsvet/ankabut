@@ -10,7 +10,7 @@ class Load:
 
     def __init__(self, src: Path, cfg = {}):
         parser.extend_config('configs/document.yaml', cfg)
-        self.db = {'docs': [], 'authors': {}, 'keywords': {}, 'citations': []}
+        self.db = {'docs': [], 'authors': {}, 'tags': {}, 'keywords': {}, 'citations': []}
         if src.is_dir():
             for file in src.iterdir():
                 self.add_doc(document.Load(file, cfg).doc)
@@ -28,9 +28,10 @@ class Load:
     def add_doc(self, doc):
         self.db['docs'].append(doc)
         self.db['citations'] += doc['citations']
-        if 'keywords' in doc:
-            for kw in doc['keywords']:
-                self.db['keywords'][kw] = self.db['keywords'].get(kw, 0) + 1
+        for field in ['keywords', 'tags']:
+            if field in doc:
+                for kw in doc[field]:
+                    self.db[field][kw] = self.db[field].get(kw, 0) + 1
         for author in doc['authors']:
             name = parser.author_name(author)
             if name:

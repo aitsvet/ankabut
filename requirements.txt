@@ -6,3 +6,4 @@ jq
 pandas
 openpyxl
 faiss-cpu
+python-Levenshtein

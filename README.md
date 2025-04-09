@@ -173,13 +173,31 @@ python . "<src>.json" "<src>.faiss" configs/plan.yaml
 ## Generating article content for specified plan
 
 ```bash
-python . "<src>.json" "<src>.faiss" configs/generate.yaml
+python . "<src>.json" "<dst>.json" configs/generate.yaml
 
 "<src>.json" - source JSON file containing article content and metadata
-"<src>.faiss" - existing search index file
+"<dst>.json" - target JSON file to contain review article content
 ```
 
 1. Starts with an article structure plan specified in [`configs/generate.yaml`](configs/generate.yaml).
+2. For each section of the plan uses the specified LLM to generate section content:
+    1. Collects section headers on a path from structure top to current section.
+    2. Uses the search index to retrieve the paragraphs from source articles relevant to collected section headers.
+    3. Collects all article section headers along with their content if present.
+    4. Requests the specified LLM for new content of the current section basing on the collected paragraphs and present article content.
+    5. Stores the resulting section in the source JSON along other source article content and metadata.
+3. Writes the resulting article to standard output.
+
+## Rewriting article content
+
+```bash
+python . "<src>.json" "<dst>.json" configs/rewrite.yaml
+
+"<src>.json" - source JSON file containing article content and metadata
+"<dst>.json" - target JSON file to contain rewritten article content
+```
+
+1. Starts with an article specified in [`configs/rewrite.yaml`](configs/rewrite.yaml).
 2. For each section of the plan uses the specified LLM to generate section content:
     1. Collects section headers on a path from structure top to current section.
     2. Uses the search index to retrieve the paragraphs from source articles relevant to collected section headers.

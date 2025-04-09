@@ -3,7 +3,6 @@ import sys
 import yaml
 
 import zotero
-import graph
 import database
 import pathlib
 import scripts
@@ -21,9 +20,7 @@ def main(src, dst, cfg = {}):
             zotero.load(src, dst)
     else:
         db = database.Load(src)
-        if dst.suffix == '.html':
-            graph.authors_keywords(db, dst)
-        elif cfg:
+        if cfg:
             with open(cfg, 'r') as f:
                 cfg = yaml.safe_load(f)
             scripts.repo[cfg['script']](db, cfg, dst)
