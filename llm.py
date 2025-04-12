@@ -1,4 +1,4 @@
-import ollama
+import openai
 import datetime
 
 from statistics import mean, stdev
@@ -13,8 +13,12 @@ class Client:
 
     def __init__(self, cfg = {}):
         parser.extend_config('configs/llm.yaml', cfg)
-        self.headers = {'Authorization': 'Bearer ' + cfg['token']} if 'token' in cfg else {}
-        self.client = ollama.Client(host=cfg.get('host', None), headers=self.headers)
+        arguments = {
+            'base_url': cfg.get('base_url', 'http://localhost:11434/v1/'),
+            'api_key': 'EMPTY',
+            'default_headers': {'Authorization': 'Bearer ' + cfg['token']} if 'token' in cfg else {}
+        }
+        self.client = openai.Client(**arguments)
         self.prompts = cfg['prompts']
 
     def chat(self, prompt, values):
@@ -32,7 +36,7 @@ class Client:
         model = self.prompts['embed']['model']
         options = self.prompts['embed']['options']
         log(f'embed [{len(input)}] >>> {model}', input)
-        response = self.client.embed(input=input, keep_alive=-1, model=model, options=options)
-        ems = response['embeddings'][0]
+        response = self.client.embeddings.create(input=input, model=model) #, options=options, keep_alive=-1)
+        ems = response.data[0].embedding
         log(f'embed [{len(ems)}] ({mean(ems):.8f}, {stdev(ems):.8f}) <<< {model}')
         return ems
