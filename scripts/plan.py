@@ -15,7 +15,7 @@ def run(db, cfg, dst):
     title = cfg['title']   
     plan = cfg['plan']
     plan_cfg = cfg['prompts']['plan']
-    plan_limit = int(plan_cfg['options'].get('num_ctx', 8192) * plan_cfg.get('token_factor', 3.0))
+    plan_limit = int(plan_cfg.get('max_tokens', 8192) * plan_cfg.get('token_factor', 3.0))
     t = len(db.db['docs'])
     source = ''
     sorted_docs = parser.sort_docs(db.db['docs'])

@@ -87,12 +87,10 @@ prompts:
     window_size: 0
     max_samples: 20
     model: snowflake-arctic-embed2:latest
-    options:
-      num_ctx: 8192
+    max_tokens: 8192
   generate:
     model: deepseek-r1:32b
-    options:
-      num_ctx: 43690
+    max_tokens: 32768
     template: |
       Напиши один раздел для обзорной статьи по теме:
 

@@ -14,7 +14,7 @@ class New():
         self.title = cfg['title']
         self.tree = tree.List('', dst)
         gen_cfg = cfg['prompts']['rewrite_paragraph']
-        self.limit = int(gen_cfg['options'].get('num_ctx', 8192) * gen_cfg.get('token_factor', 3.0))
+        self.limit = int(gen_cfg.get('max_tokens', 8192) * gen_cfg.get('token_factor', 3.0))
         print(f'generation sources list limit: {self.limit}\n')
         self.template = gen_cfg['template']
 

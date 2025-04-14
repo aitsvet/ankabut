@@ -6,8 +6,7 @@ prompts:
     # options:
     #   num_ctx: 131072
     model: rscr/ruadapt_qwen2.5_32b:Q4_K_M
-    options:
-      num_ctx: 32768
+    max_tokens: 32768
     template: |
 
       Перед тобой следующий черновик обзорной статьи, уже отредактированный от начала и до целевого раздела.
@@ -32,8 +31,7 @@ prompts:
     # options:
     #   num_ctx: 131072
     model: rscr/ruadapt_qwen2.5_32b:Q4_K_M
-    options:
-      num_ctx: 32768
+    max_tokens: 32768
     template: |
 
       Перед тобой следующий черновик обзорной статьи.
