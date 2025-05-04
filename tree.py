@@ -13,7 +13,7 @@ class List():
         lines = src.strip().split('\n')
         stack = []
         self.tree = []
-        print('\n'.join(lines))
+        # print('\n'.join(lines))
         for line in lines:
             number_part = re.match(r'^\s*([0-9.]+)\s*', line.strip())
             levels = number_part.group(1).split('.')

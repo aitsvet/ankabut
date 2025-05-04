@@ -1,0 +1,35 @@
+script: analyze.py
+graph:
+  threshold:
+    keytags: 1
+    levenshtein: 3
+  width: 1200px
+  height: 1000px
+  edge:
+    weight: 10
+  author:
+    shape: ellips
+    color: green
+    font:
+      color: white
+  keyword:
+    shape: box
+    color: orange
+    font:
+      color: black
+  doc:
+    shape: circle
+    color: lightblue
+    font:
+      color: black
+  synonyms:
+distmap:
+  width: 1000
+  height: 1000
+  colorscale: Hot
+closest:
+  max_samples: 20
+  same_source: false
+prompts:
+  embed:
+    model: snowflake-arctic-embed2:latest

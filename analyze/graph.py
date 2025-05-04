@@ -7,14 +7,15 @@ from parser import author_name
 def props(cfg):
     return {'shape': cfg['shape'], 'color': cfg['color'], 'font': {'color': cfg['font']['color']}}
 
-def run(db, cfg, dst: pathlib.Path):
-    net = Network(cfg['width'], cfg['height'])
+def print(db, cfg, dst: pathlib.Path):
+    net = Network(cfg['height'], cfg['width'])
     weight = int(cfg['edge']['weight'])
     threshold = int(cfg['threshold']['keytags'])
     distance = int(cfg['threshold']['levenshtein'])
     t, k = db.db['tags'], db.db['keywords']
     counts = {kt.replace('-', ''): max(t.get(kt, 0), k.get(kt, 0)) for kt in set(t.keys() | k.keys())}
-    keytags = sorted(list(set(counts.keys()) - set(cfg['synonyms'].keys())))
+    synonyms = dict() if not ('synonyms' in cfg and cfg['synonyms']) else cfg['synonyms']
+    keytags = sorted(list(set(counts.keys()) - set(synonyms.keys())))
     for kt in keytags:
         node, count = kt, counts[kt]
         for kk in keytags:
@@ -28,7 +29,7 @@ def run(db, cfg, dst: pathlib.Path):
         if count > threshold:
             label = node.replace(' ', '\n').replace('-', '-\n')
             net.add_node(node, label=label, **props(cfg['keyword']))
-    for s1, s2 in cfg['synonyms'].items():
+    for s1, s2 in synonyms.items():
         counts[s2] = max(counts[s1], counts[s2])
         counts[s1] = 0
         if counts[s2] > threshold:
@@ -46,12 +47,12 @@ def run(db, cfg, dst: pathlib.Path):
                 for kt in doc_keytags:
                     if counts[kt] > threshold:
                         net.add_edge(doc['path'], kt, weight=weight)
-                    elif kt in cfg['synonyms'] and counts[cfg['synonyms'][kt]] > threshold:
-                        net.add_edge(doc['path'], cfg['synonyms'][kt], weight=weight)
+                    elif kt in synonyms and counts[synonyms[kt]] > threshold:
+                        net.add_edge(doc['path'], synonyms[kt], weight=weight)
                     elif counts[kt] == 0: # synonym
                         for kk in keytags:
                             if counts[kk] > threshold and Levenshtein.distance(kk, kt) <= distance:
                                 net.add_edge(doc['path'], kk, weight=weight)
                                 break
     net.toggle_physics(True)
-    net.show(dst.as_posix(), notebook=False)
+    return net.generate_html(dst.as_posix())

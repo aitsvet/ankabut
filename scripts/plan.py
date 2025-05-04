@@ -1,5 +1,6 @@
 import llm
 import parser
+import database
 
 def summarizer(client, scale, source):
     word_limit = int(len(source) * scale)
@@ -10,10 +11,11 @@ def summarizer(client, scale, source):
     }).strip() + '\n\n'
 
 def run(db, cfg, dst):
+    dst_db = database.Load(dst)
     onebyone = cfg['onebyone']
     client = llm.Client(cfg)
-    title = cfg['title']   
-    plan = cfg['plan']
+    title = dst_db.db['docs'][0]['title']
+    plan = '\n'.join([s['title'] for s in dst_db.db['docs'][0]['sections']])
     plan_cfg = cfg['prompts']['plan']
     plan_limit = int(plan_cfg.get('max_tokens', 8192) * plan_cfg.get('token_factor', 3.0))
     t = len(db.db['docs'])
@@ -32,8 +34,8 @@ def run(db, cfg, dst):
             if 'title' in sec:
                 buffer += '## ' + sec['title'] + '\n\n'
             paragraphs = ''
-            for par in sec['content']:
-                paragraphs += par + '\n\n'
+            for par in sec['paragraphs']:
+                paragraphs += par['content'] + '\n\n'
             if onebyone and len(paragraphs) > limit:
                 paragraphs = summarizer(client, scale, paragraphs)
             buffer += paragraphs
@@ -49,10 +51,10 @@ def run(db, cfg, dst):
         if onebyone and len(source) > limit:
             source = summarizer(client, scale, source)
         plan = client.chat('plan', {
-            'title': cfg['title'],
+            'title': title,
             'plan': plan,
             'source': source
         })
-        plan = parser.remove_blank_lines(plan)
+        plan = parser.strip_thoughts(parser.remove_blank_lines(plan))
         print(plan + '\n')
         source = '' if onebyone else buffer

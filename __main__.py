@@ -11,13 +11,12 @@ import pdf
 def main(src, dst, cfg = {}):
     src = pathlib.Path(src)
     dst = pathlib.Path(dst)
-    if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite', '.faiss']):
+    if not (dst.exists() or dst.suffix in ['.html', '.json', '.sqlite', '.md']):
         os.makedirs(dst, exist_ok=True)
-    if dst.is_dir():
-        if src.suffix == '.pdf':
-            print(pdf.Reader().extract_markdown_from(src.as_posix()))
-        else:
-            zotero.load(src, dst)
+    if src.suffix == '.rdf':
+        zotero.load(src, dst)
+    elif src.suffix == '.pdf':
+        dst.write_bytes(pdf.Reader().extract_markdown_from(src.as_posix()))
     else:
         db = database.Load(src)
         if cfg:

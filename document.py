@@ -7,7 +7,7 @@ class Load:
 
     def __init__(self, path, cfg):
         self.doc = {'path': path.name, 'ids': [], 'authors': [], 'sections': [{}], 'citations': []}
-        self.field = 'content'
+        self.field = 'paragraphs'
         self.paragraph = []
         self.prefix_filter = cfg.get('prefix_filter', [])
         self.min_paragraph = cfg.get('min_paragraph', None)
@@ -66,19 +66,19 @@ class Load:
     def add_paragraph(self):
         if len(self.paragraph) > 0:
             content = '\n'.join(self.paragraph)
-            if self.field == 'content':
+            if self.field == 'paragraphs':
                 last = len(self.doc['sections'])-1
-                if not 'content' in self.doc['sections'][last]:
-                    self.doc['sections'][last]['content'] = []
+                if not 'paragraphs' in self.doc['sections'][last]:
+                    self.doc['sections'][last]['paragraphs'] = []
                 lower = content.strip().lower()
-                paragraphs = self.doc['sections'][last]['content']
+                paragraphs = self.doc['sections'][last]['paragraphs']
                 if not any(lower.startswith(p) for p in self.prefix_filter):
                     if len(paragraphs) > 0 and self.min_paragraph and \
                         len(content.split()) < self.min_paragraph and \
-                        len(paragraphs[-1].split()) < self.min_paragraph:
-                        paragraphs[-1] += '\n' + content
+                        len(paragraphs[-1]['content'].split()) < self.min_paragraph:
+                        paragraphs[-1]['content'] += '\n' + content
                     else:
-                        paragraphs.append(content)
+                        paragraphs.append({'content': content})
             else:
                 self.doc[self.field].append(content)
             self.paragraph = []

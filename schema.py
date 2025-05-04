@@ -55,9 +55,9 @@ def load_doc(cursor, doc):
         doc['citations'].append(citation)
     cursor.execute('SELECT section_id, title FROM sections WHERE doc_id = ? ORDER BY section_id', (doc_id,))
     for section_id, section_title in cursor.fetchall():
-        section = { 'title': section_title, 'content': [] }
+        section = { 'title': section_title, 'paragraphs': [] }
         cursor.execute('SELECT content FROM paragraphs WHERE doc_id = ? AND section_id = ? ORDER BY paragraph_id', (doc_id, section_id))
         for (content,) in cursor.fetchall():
-            section['content'].append(content)
+            section['paragraphs'].append({'content': content})
         doc['sections'].append(section)
     return doc

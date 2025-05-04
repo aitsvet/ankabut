@@ -2,7 +2,9 @@ from pathlib import Path
 
 import re
 import xml.etree.ElementTree as ET
+
 import pdf
+import parser
 
 def attrib(elem, name, default = None):
     return elem.attrib.get('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}' + name, default)
@@ -20,6 +22,10 @@ def load(src: Path, dst: Path):
     journals = root.findall('bib:Journal', nss)
     attachments = root.findall('z:Attachment', nss)
     for article in root.findall('bib:Article', nss) + root.findall('rdf:Description', nss):
+        link = article.find('link:link', nss)
+        if link is None:
+            continue
+        link = attrib(link, 'resource')
         partOf = article.find('dcterms:isPartOf', nss)
         journal = partOf.find('bib:Journal', nss)
         if journal is None:
@@ -36,14 +42,14 @@ def load(src: Path, dst: Path):
         year = text(article, 'dc:date')
         pages = text(article, 'bib:pages')
         pages = ('С.' + pages) if pages else ''
-        link = article.find('link:link', nss)
-        if link is None:
+        firstAuthor = text(article.find('bib:authors/rdf:Seq/rdf:li/foaf:Person', nss), 'foaf:surname')
+        dstname = parser.trim_filename(f'{year} {firstAuthor} {title}')
+        output = dst.joinpath(Path(dstname).with_suffix('.md').name)
+        if output.exists():
             continue
-        link = attrib(link, 'resource')
         attachment = [a.find('rdf:resource', nss) for a in attachments if attrib(a, 'about') == link][0]
         source_path = src.parent.joinpath(attrib(attachment, 'resource')).as_posix()
         source = reader.extract_markdown_from(source_path)
-        output = dst.joinpath(Path(source_path).with_suffix('.md').name)
         with open(output, 'w+') as f:
             sourcelines = []
             lowerlines = []

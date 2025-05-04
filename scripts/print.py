@@ -15,6 +15,6 @@ def run(db, cfg, dst):
             if 'title' in sec:
                 print('## ' + sec['title'] + '\n\n')
             paragraphs = ''
-            for par in sec['content']:
-                paragraphs += par + '\n\n'
+            for par in sec['paragraphs']:
+                paragraphs += par['content'] + '\n\n'
             print(paragraphs)
