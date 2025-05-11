@@ -2,8 +2,9 @@ marker-pdf
 openai
 numpy
 pyvis
-jq
 pandas
 openpyxl
 faiss-cpu
 python-Levenshtein
+markdown
+weasyprint

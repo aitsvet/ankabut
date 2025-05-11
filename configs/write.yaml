@@ -1,4 +1,4 @@
-script: generate.py
+script: write.py
 title: Криптовалюта как исламский финансовый инструмент
 plan: |
   1. Введение

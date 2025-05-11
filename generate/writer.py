@@ -8,7 +8,7 @@ class New(builder.New):
     def __init__(self, db, dst: pathlib.Path, cfg):
         super().__init__(db, dst, cfg, 'generate')
 
-    def generator(self, path, node):
+    def writer(self, path, node):
         if 'children' in node or 'generate' in node:
             return
         draft = self.build('generate')
@@ -23,6 +23,6 @@ class New(builder.New):
         print(node['generate'])
         self.tree.save()
     
-    def generate(self):
-        self.tree.traverse(self.generator)
+    def write(self):
+        self.tree.traverse(self.writer)
         return self.build('generate')

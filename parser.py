@@ -56,3 +56,10 @@ def unpack_vector(base64_str: str) -> list[float]:
     compressed_bytes = base64.b64decode(base64_str)
     raw_bytes = gzip.decompress(compressed_bytes)
     return list(struct.unpack(f'{len(raw_bytes)//8}d', raw_bytes))
+
+def leading_numbers(line: str):
+    m = re.match(r'^[#\s]*([0-9.]+)\s', line.strip())
+    if not m:
+        return []
+    else:
+        return list(map(int, filter(None, m.group(1).split('.'))))

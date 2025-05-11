@@ -16,7 +16,7 @@ class Load:
                 self.add_doc(document.Load(file, cfg).doc)
         elif src.suffix == '.json':
             with open(src, 'r') as f:
-                self.db = json.load(f)
+                self.db.update(json.load(f))
         elif src.suffix == '.sqlite':
             with sqlite3.connect(src) as conn:
                 schema.migrate(conn.cursor())
@@ -27,12 +27,11 @@ class Load:
 
     def add_doc(self, doc):
         self.db['docs'].append(doc)
-        self.db['citations'] += doc['citations']
+        self.db['citations'].extend(doc.get('citations', []))
         for field in ['keywords', 'tags']:
-            if field in doc:
-                for kw in doc[field]:
-                    self.db[field][kw] = self.db[field].get(kw, 0) + 1
-        for author in doc['authors']:
+            for kw in doc.get(field, []):
+                self.db[field][kw] = self.db[field].get(kw, 0) + 1
+        for author in doc.get('authors', []):
             name = parser.author_name(author)
             if name:
                 if not name in self.db['authors']:
