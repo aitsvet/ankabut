@@ -5,26 +5,36 @@ import struct
 import yaml
 import unicodedata
 
-def author_name(title):
-    return next((w.capitalize() for w in re.split(r'[\s,.]+', title) if len(w) > 2), None)
+def author_name(cred: str):
+    return next((w.capitalize() for w in re.split(r'[\s,.]+', cred) if len(w) > 2), None)
 
-def keywords(line):
+def keywords(line: str):
     return [re.sub(r'\s+', ' ', kw.strip().lower()) for kw in re.split(r'[,.;]+', line) if kw]
 
-def table_row(last, line):
+def table_row(last: str, line: str):
     return ' | '.join([l.strip()+' '+n.strip() for l, n in zip(last.split('|'), line.split('|'))]).strip()
 
 def word_count(doc):
-    return sum([sum([len(p['content'].split()) for p in s['paragraphs']]) for s in doc['sections'] if 'paragraphs' in s])
+    return sum([(sum([len(p['content'].split()) for p in s['paragraphs']]) if 'paragraphs' in s else 0) +
+                len(s.get('title', '').split()) for s in doc['sections']])
 
 def char_count(doc):
-    return sum([sum([len(p['content']) for p in s['paragraphs']]) for s in doc['sections'] if 'paragraphs' in s])
+    return sum([(sum([len(p['content']) for p in s['paragraphs']]) if 'paragraphs' in s else 0) +
+                len(s.get('title')) for s in doc['sections']])
 
-def remove_blank_lines(text):
+def summary_scale(doc, limit):
+    words = word_count(doc)
+    chars = char_count(doc)
+    scale = (limit / chars) * (words / chars)
+    word_limit = limit * words // chars
+    message = f'{words} слов {chars} символов (лимит {word_limit} слов {limit} символов)'
+    return scale, message
+
+def remove_blank_lines(text: str):
     return '\n'.join([line for line in text.splitlines() if line.strip()])
 
 def sort_docs(docs):
-    return sorted(docs, key=lambda x: (x['year'], x['authors'][0]))
+    return sorted(docs, key=lambda x: (x.get('year', ''), x.get('authors', [''])[0]))
 
 def extend_config(path, cfg):
     try:
@@ -34,7 +44,7 @@ def extend_config(path, cfg):
                     cfg[k] = v
     except: pass
 
-def strip_thoughts(answer):
+def strip_thoughts(answer: str):
     start = 0
     if '</think>' in answer:
         start = answer.index('</think>') + 8
@@ -63,3 +73,31 @@ def leading_numbers(line: str):
         return []
     else:
         return list(map(int, filter(None, m.group(1).split('.'))))
+
+def sections_from_plan(plan: str):
+    sections = []
+    for l in [l.strip() for l in plan.splitlines()]:
+        if leading_numbers(l):
+            sections.append({'title': re.sub(r'^[#\s]+', '', l)})
+        elif len(sections) > 0:
+            if 'paragraphs' not in sections[-1]:
+                sections[-1]['paragraphs'] = [{'content': l}]
+            else:
+                sections[-1]['paragraphs'].append({'content': l})
+    return sections
+
+def copy_and_link_parents(sections):
+    sections = sections.copy()
+    prev_levels = []
+    for (i, sec) in enumerate(sections, -1):
+        number_part = re.match(r'^([0-9.]+)\s', sec['title'].strip())
+        if number_part:
+            levels = number_part.group(1).split('.')
+            if len(prev_levels) < len(levels):
+                sec['parent'] = i
+            elif len(prev_levels) > 0:
+                sec['parent'] = sections[i]['parent']
+                if len(prev_levels) > len(levels):
+                    sec['parent'] = sections[sec['parent']]['parent']
+            prev_levels = levels
+    return sections

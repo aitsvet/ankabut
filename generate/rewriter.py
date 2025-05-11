@@ -11,7 +11,7 @@ class New(builder.New):
     def rewriter(self, path, node):
         if 'children' in node or 'rewrite' in node:
             return
-        draft = self.build('rewrite', node['title'], 'generate')
+        draft = self.build_sections('rewrite', node['title'], 'generate')
         values = {'draft': draft, 'paragraph': node['generate'], 'sources': ''}
         limit = self.limit - len(self.template.format(**values))
         input = '\n'.join([re.sub(r'^[0-9. ]+', '', p) for p in path + [node['title']]])
@@ -25,7 +25,7 @@ class New(builder.New):
 
     def rewrite(self):
         self.tree.traverse(self.rewriter)
-        source = self.build('rewrite')
+        source = self.build_sections('rewrite')
         values = {'title': self.tree.tree[0]['title'], 'source': source}
         intro = self.chat('write_paragraph', values)
         self.tree.tree[0] = {'rewrite': intro}
@@ -33,4 +33,4 @@ class New(builder.New):
         outro = self.chat('write_paragraph', values)
         self.tree.tree[-1] = {'rewrite': outro}
         self.tree.save()
-        return self.build('rewrite')
+        return self.build_sections('rewrite')
