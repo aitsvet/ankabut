@@ -16,7 +16,7 @@ def migrate(cursor):
                     pk + 'section_id, paragraph_id)', 'FOREIGN KEY (doc_id, section_id) REFERENCES sections(doc_id, section_id)'],
     }
     for name, fields in tables.items():
-        statement = f'CREATE TABLE IF NOT EXISTS {name} ( {', '.join(fields)} )'
+        statement = f"CREATE TABLE IF NOT EXISTS {name} ( {', '.join(fields)} )"
         try:
             cursor.execute(statement)
         except:

@@ -22,7 +22,7 @@ class Index:
         for (n, doc) in enumerate(self.docs):
             for (i, sec) in enumerate(doc['sections']):
                 for (j, par) in enumerate(sec['paragraphs']):
-                    self.ids.append(f'{doc['path']}:{i}:{j}')
+                    self.ids.append(f"{doc['path']}:{i}:{j}")
                     if self.model in par.get('embedding', {}):
                         arr.append(parser.unpack_vector(par['embedding'][self.model]))
                     else:
@@ -71,7 +71,7 @@ class Index:
                         min_dist = dist
                     c += re.sub(r'\[[, 0-9]+\]', '', paragraphs[par_id]['content']) + '\n\n'
             author = parser.author_name(doc['authors'][0])
-            c = f'Из источника {num+1}. {author} ({doc['year']}) {doc['title']}:\n\n' + c
+            c = f"Из источника {num+1}. {author} ({doc['year']}) {doc['title']}:\n\n" + c
             sources_dist.append({'c': c, 'd': min_dist})
         result = []
         for s in sorted(sources_dist, key=lambda s: s['d']):

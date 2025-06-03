@@ -14,9 +14,9 @@ def run(db, cfg, dst: Path):
         heading = ' - '.join(filter(None, [doc.get('year'), authors, doc.get('title')]))
         output += f'# {n} из {t} - {heading} - {words} слов {chars} символов\n\n'
         if 'abstract' in doc:
-            output += f'Аннотация. {doc['abstract']}\n\n'
+            output += f"Аннотация. {doc['abstract']}\n\n"
         if 'keywords' in doc:
-            output += f'Ключевые слова: {", ".join(doc['keywords'])}\n\n'
+            output += f"Ключевые слова: {', '.join(doc['keywords'])}\n\n"
         for sec in doc['sections']:
             if 'title' in sec:
                 output += '## ' + sec['title'] + '\n\n'

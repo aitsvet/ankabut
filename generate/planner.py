@@ -47,9 +47,9 @@ class New(builder.New):
             buffer = self.build_source(doc, limit, scale)
             last_doc = n == len(sorted_docs)
             if self.onebyone or last_doc or len(buffer) < limit:
-                sources += f'# {doc['title']}\n\n{buffer}'
-                citations.append(f'{n}. {authors} ({doc['year']}) {doc['title']}')
-                print(f'{n} из {total} {doc['year']} {authors} - {doc['title']} - {message}\n')
+                sources += f"# {doc['title']}\n\n{buffer}"
+                citations.append(f"{n}. {authors} ({doc['year']}) {doc['title']}")
+                print(f"{n} из {total} {doc['year']} {authors} - {doc['title']} - {message}\n")
                 if not self.onebyone and not last_doc: # == len(buffer) < limit
                     continue
             if self.onebyone and len(sources) > limit:
@@ -69,7 +69,7 @@ class New(builder.New):
             if self.onebyone:
                 sources, citations = '', []
             else:
-                sources = f'# {doc['title']}\n\n{buffer}'
-                citations = [f'{n}. {authors} ({doc['year']}) {doc['title']}']
+                sources = f"# {doc['title']}\n\n{buffer}"
+                citations = [f"{n}. {authors} ({doc['year']}) {doc['title']}"]
             current_plan = self.build_sections(endline='\n')
             print(current_plan)

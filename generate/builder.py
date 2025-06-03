@@ -25,7 +25,7 @@ class New():
     def build_sections(self, endline = '\n\n'):
         source = f'# {self.title}{endline}'
         for sec in self.sections:
-            source += f'## {sec['title']}{endline}'
+            source += f"## {sec['title']}{endline}"
             if 'paragraphs' in sec:
                 for par in sec['paragraphs']:
                     source += par['content'] + endline

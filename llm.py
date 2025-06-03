@@ -15,8 +15,7 @@ class Client:
         parser.extend_config('configs/llm.yaml', cfg)
         arguments = {
             'base_url': cfg.get('base_url', 'http://localhost:11434/v1/'),
-            'api_key': 'EMPTY',
-            'default_headers': {'Authorization': 'Bearer ' + cfg['token']} if 'token' in cfg else {},
+            'api_key': cfg.get('token', 'EMPTY'),
             'timeout': cfg.get('timeout', 3600.0)
         }
         self.client = openai.Client(**arguments)

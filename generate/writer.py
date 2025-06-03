@@ -17,10 +17,10 @@ class New(builder.New):
         for sec in new_doc['sections']:
             if not 'paragraphs' in sec:
                 continue
-            input = f'## {sec['title']}\n\n'
+            input = f"## {sec['title']}\n\n"
             parent = sec['parent']
             while parent > 0:
-                input = f'## {self.sections[parent]['title']}\n\n{input}'
+                input = f"## {self.sections[parent]['title']}\n\n{input}"
                 parent = self.sections[parent]['parent']
             for par in sec['paragraphs']:
                 input += par['content'] + '\n\n'
