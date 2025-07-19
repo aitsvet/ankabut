@@ -27,7 +27,7 @@ class Index:
                         arr.append(parser.unpack_vector(par['embedding'][self.model]))
                     else:
                         need_save = True
-                        print(f'{n+1} из {len(self.docs)} {self.ids[-1]}\n\n{par["content"]}\n\n')
+                        print(f"{n+1} из {len(self.docs)} {self.ids[-1]}\n\n{par["content"]}\n\n")
                         vector = self.client.embed(par['content'])
                         arr.append(vector)
                         if 'embedding' in par:

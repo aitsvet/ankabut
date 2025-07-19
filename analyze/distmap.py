@@ -11,7 +11,7 @@ def print(em: embedder.Index, cfg, tpl: str, cosine_distance):
     tickvals = list(range(0, n, step))
     if n - 1 > tickvals[-1]:
         p = em.get_paragraph(n-1)
-        tickvals.append(f'{p["year"]} {p["author"]} {p["sec_id"]} {p["par_id"]}')
+        tickvals.append(f"{p["year"]} {p["author"]} {p["sec_id"]} {p["par_id"]}")
     tpl = tpl.replace(script_marker, f"""
         <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
         <style type="text/css">#heatmap {{ height: {cfg["height"]}px }}</style>

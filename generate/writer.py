@@ -36,5 +36,5 @@ class New(builder.New):
             print(values['sources'])
             output = self.chat('generate', values)
             print(output)
-            sec['paragraphs'] = [{ 'content': output }]
+            sec['paragraphs'] = [{ 'content': l } for l in map(str.strip, output.splitlines()) if l]
             self.dst_db.save(self.dst)

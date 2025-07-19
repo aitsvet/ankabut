@@ -20,10 +20,10 @@ class New():
         self.citations = []
         for (n, doc) in enumerate(self.embedder.docs, 1):
             author = ', '.join(map(parser.author_name, doc['authors']))
-            self.citations.append(f'{n}. {author} ({doc["year"]}) {doc["title"]}')
+            self.citations.append(f"{n}. {author} ({doc["year"]}) {doc["title"]}")
 
     def build_sections(self, endline = '\n\n'):
-        source = f'# {self.title}{endline}'
+        source = f"# {self.title}{endline}"
         for sec in self.sections:
             source += f"## {sec['title']}{endline}"
             if 'paragraphs' in sec:

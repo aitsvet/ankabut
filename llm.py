@@ -26,16 +26,16 @@ class Client:
         messages = [{'role': 'user', 'content': request}]
         model = self.prompts[prompt]['model']
         max_tokens = self.prompts[prompt]['max_tokens']
-        log(f'{prompt} [{len(request)}] >>> {model}', request)
+        log(f"{prompt} [{len(request)}] >>> {model}", request)
         response = self.client.chat.completions.create(messages=messages, model=model, max_tokens=max_tokens)
         response = response.choices[0].message.content
-        log(f'{prompt} [{len(response)}] <<< {model}', response)
+        log(f"{prompt} [{len(response)}] <<< {model}", response)
         return response
 
     def embed(self, input):
         model = self.prompts.get('embed', {}).get('model', 'bge-m3')
-        log(f'embed [{len(input)}] >>> {model}', input)
+        log(f"embed [{len(input)}] >>> {model}", input)
         response = self.client.embeddings.create(input=input, model=model)
         ems = response.data[0].embedding
-        log(f'embed [{len(ems)}] ({mean(ems):.8f}, {stdev(ems):.8f}) <<< {model}')
+        log(f"embed [{len(ems)}] ({mean(ems):.8f}, {stdev(ems):.8f}) <<< {model}")
         return ems

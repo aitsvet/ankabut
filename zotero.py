@@ -16,8 +16,9 @@ class Convert:
     def __init__(self, src: Path, dst: Path):
         with open(src, 'r') as f:
             self.root = ET.fromstring(f.read())
+        with open(src, 'r') as f:
             start = ET.iterparse(f, events=['start-ns'])
-        self.nss = {key: value for _, (key, value) in start}
+            self.nss = {key: value for _, (key, value) in start}
         self.reader = pdf.Reader()
         self.journals = self.all('bib:Journal')
         self.attachments = self.all('z:Attachment')
@@ -40,7 +41,7 @@ class Convert:
         authors = article.findall('bib:authors/rdf:Seq/rdf:li/foaf:Person', self.nss)
         firstAuthor = self.text(authors[0], 'foaf:surname')
         title = self.text(article, 'dc:title')
-        dstname = parser.trim_filename(f'{year} {firstAuthor} {title}')
+        dstname = parser.trim_filename(f"{year} {firstAuthor} {title}")
         output = dst.joinpath(Path(dstname).with_suffix('.md').name)
         if output.exists():
             return
@@ -50,9 +51,9 @@ class Convert:
             partOf = attrib(partOf, 'resource')
             journal = [j for j in self.journals if attrib(j, 'about') == partOf][0]
         ids = [attrib(article, 'about'), self.text(journal, 'dc:identifier')]
-        volume = f'Т.{v}' if (v := self.text(journal, 'prism:volume')) else ''
-        number = f'№{n}' if (n := self.text(journal, 'prism:number')) else ''
-        pages = f'С.{p}' if (p := self.text(article, 'bib:pages'))  else ''
+        volume = f"Т.{v}' if (v := self.text(journal, 'prism:volume')) else '"
+        number = f"№{n}' if (n := self.text(journal, 'prism:number')) else '"
+        pages = f"С.{p}' if (p := self.text(article, 'bib:pages'))  else '"
         journal = self.text(journal, 'dc:title')
         citation = [year, journal, volume, number, pages]
         tags = [self.text(tag, 'rdf:value') for tag in article.findall('dc:subject/z:AutomaticTag', self.nss)]
@@ -61,7 +62,7 @@ class Convert:
         source = self.reader.md_from(source_path)
         with open(output, 'w+') as f:
             self.save_article(ids, citation, authors, title, tags, source, f)
-        print(f'Written {output}')
+        print(f"Written {output}")
 
     def save_article(self, ids, citation, authors, title, tags, source, f):
         sourcelines = []
@@ -83,12 +84,12 @@ class Convert:
         for author in authors:
             surname = self.text(author, 'foaf:surname')
             givenName = self.text(author, 'foaf:givenName')
-            name = f'{surname} {givenName}'
+            name = f"{surname} {givenName}"
             for l in sourcelines:
                 if surname in l and givenName in l and len(l) > len(name):
                     name = l
             f.write(name + '\n')
-        f.write(f'\n# {title}\n\nTags: {", ".join(filter(None, tags))}\n\n')
+        f.write(f"\n# {title}\n\nTags: {", ".join(filter(None, tags))}\n\n")
         start = 0
         lowertitle = title.lower()
         for (newstart, l) in enumerate(lowerlines[:len(lowerlines) // 5]):

@@ -12,7 +12,7 @@ def run(db, cfg, dst: Path):
         words = parser.word_count(doc)
         chars = parser.char_count(doc)
         heading = ' - '.join(filter(None, [doc.get('year'), authors, doc.get('title')]))
-        output += f'# {n} из {t} - {heading} - {words} слов {chars} символов\n\n'
+        output += f"# {n} из {t} - {heading} - {words} слов {chars} символов\n\n"
         if 'abstract' in doc:
             output += f"Аннотация. {doc['abstract']}\n\n"
         if 'keywords' in doc:

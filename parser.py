@@ -27,7 +27,7 @@ def summary_scale(doc, limit):
     chars = char_count(doc)
     scale = (limit / chars) * (words / chars)
     word_limit = limit * words // chars
-    message = f'{words} слов {chars} символов (лимит {word_limit} слов {limit} символов)'
+    message = f"{words} слов {chars} символов (лимит {word_limit} слов {limit} символов)"
     return scale, message
 
 def remove_blank_lines(text: str):
@@ -58,14 +58,14 @@ def trim_filename(text, sep=' ', max_len=255):
     return text.decode().strip()
 
 def pack_vector(float_list: list[float]) -> str:
-    float_bytes = struct.pack(f'{len(float_list)}d', *float_list)
+    float_bytes = struct.pack(f"{len(float_list)}d", *float_list)
     compressed_bytes = gzip.compress(float_bytes)
     return base64.b64encode(compressed_bytes).decode('utf-8')
 
 def unpack_vector(base64_str: str) -> list[float]:
     compressed_bytes = base64.b64decode(base64_str)
     raw_bytes = gzip.decompress(compressed_bytes)
-    return list(struct.unpack(f'{len(raw_bytes)//8}d', raw_bytes))
+    return list(struct.unpack(f"{len(raw_bytes)//8}d", raw_bytes))
 
 def leading_numbers(line: str):
     m = re.match(r'^[#\s]*([0-9.]+)\s', line.strip())

@@ -36,7 +36,7 @@ class Load:
                 self.add_paragraph()
         except:
             traceback.print_exc()
-            print(f'At {path}:{number} :')
+            print(f"At {path}:{number} :")
 
     def add_line(self, line):
         line = line.replace('*', '')
