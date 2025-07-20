@@ -20,7 +20,7 @@ def word_count(doc):
 
 def char_count(doc):
     return sum([(sum([len(p['content']) for p in s['paragraphs']]) if 'paragraphs' in s else 0) +
-                len(s.get('title')) for s in doc['sections']])
+                len(s.get('title', '')) for s in doc['sections']])
 
 def summary_scale(doc, limit):
     words = word_count(doc)

@@ -4,7 +4,7 @@ prompts:
     window_size: 0
     max_samples: 20
     model: snowflake-arctic-embed2:latest
-  generate:
+  write:
     model: deepseek-r1:32b
     max_tokens: 32768
     template: |

@@ -22,13 +22,28 @@ class New():
             author = ', '.join(map(parser.author_name, doc['authors']))
             self.citations.append(f"{n}. {author} ({doc["year"]}) {doc["title"]}")
 
-    def build_sections(self, endline = '\n\n'):
+    def build_section(self, sec, endline = '\n\n', with_title = True, with_parents = False):
+        source = ''
+        if with_title:
+            if 'title' in sec:
+                source += f"## {sec['title']}{endline}"
+            if with_parents:
+                parent = sec['parent']
+                while parent > 0:
+                    source = f"## {self.sections[parent]['title']}\n\n{source}"
+                    parent = self.sections[parent]['parent']
+        if 'paragraphs' in sec:
+            for par in sec['paragraphs']:
+                if 'content' in par:
+                    source += par['content'] + endline
+        return source
+
+    def build_sections(self, endline = '\n\n', current = None):
         source = f"# {self.title}{endline}"
         for sec in self.sections:
-            source += f"## {sec['title']}{endline}"
-            if 'paragraphs' in sec:
-                for par in sec['paragraphs']:
-                    source += par['content'] + endline
+            if sec == current:
+                break
+            source += self.build_section(sec, endline)
         return source
 
     def chat(self, prompt, values):

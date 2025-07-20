@@ -6,7 +6,7 @@ prompts:
     window_size: 0
     max_samples: 20
     model: snowflake-arctic-embed2:latest
-  rewrite_paragraph:
+  rewrite:
     model: rscr/ruadapt_qwen2.5_32b:Q4_K_M
     max_tokens: 32768
     template: |
@@ -38,17 +38,3 @@ prompts:
       Перепиши текст только одного приведённого ниже раздела, не включая в ответ какие-либо другие разделы.
 
       {paragraph}
-  write_paragraph:
-    model: rscr/ruadapt_qwen2.5_32b:Q4_K_M
-    max_tokens: 32768
-    template: |
-
-      Перед тобой следующий черновик обзорной статьи.
-
-      {source}
-    
-      Напиши раздел {title} - не менее 500 слов и не более 1000 слов.
-      
-      Сделай текст связным в соответствии со смыслом всей статьи.
-
-      Не повторяй смысл других разделов, каждый факт или мнение приведи в тексте только один раз.

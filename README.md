@@ -123,9 +123,9 @@ python . "<src>.json" "<dst>.json" configs/embed.yaml
 2. Stores embeddings along with article contents and metadata into destination JSON file.
 
 ```bash
-echo 'search query' | python . "<src>.json" . configs/embed.yaml
+echo 'search query' | python . "<dst>.json" . configs/embed.yaml
 
-"<src>.json" - source JSON file containing both articles and embedding vectors
+"<dst>.json" - JSON file to contain both articles and embedding vectors
 ```
 
 1. Reads article contents and metadata along with paragraph embeddings from source JSON file.
@@ -164,48 +164,47 @@ python . "<src>.json" "<dst>.json" configs/plan.yaml
 "<dst>.json" - target JSON file to contain new article structure plan
 ```
 
-1. Starts with an article structure plan specified in [`configs/plan.yaml`](configs/plan.yaml).
-2. Walks through articles in the source JSON file in order specified in the config.
-3. For each article uses the specified LLM to refine the plan:
-    1. If the current article has the `plan` field in the source JSON, uses it as the current plan and continues with next acticle.
-    2. Collects article content paragraphs in each section.
-    3. In case the collected content overfits the specified LLM context size,  summarises the collected content.
-    4. Requests the specified LLM for a new version of the plan basing on the current version the plan and current article content.
-    5. Stores the `plan` field of current article in source JSON with the new version of the plan.
-4. Writes the resulting plan to standard output and to the target JSON file.
+1. Reads `<dst>.json` (you can copy [`data/template.json`](data/template.json) as an example).
+2. Starts with an article structure plan specified in last document of `<dst>.json`.
+3. Starts with a first article in `<src>.json` not in citation list of last document of `<dst>.json`.
+3. For each article in `<src>.json` uses the LLM specified in [`configs/plan.yaml`](configs/plan.yaml) to refine the plan:
+    1. Collects article content paragraphs in each section.
+    2. In case the collected content overfits the specified LLM context size, summarises the collected content.
+    3. Requests the specified LLM for a new version of the plan basing on the current version the plan and current article content.
+    4. Stores the new plan as new document of `<dst>.json` along with all processed articles in the new document's citation list.
+    5. Prints the updated plan to standard output.
 
 ## Generating article content for specified plan
 
 ```bash
 python . "<src>.json" "<dst>.json" configs/write.yaml
 
-"<src>.json" - source JSON file containing source article content and metadata
+"<src>.json" - source JSON file containing source article content, embeddings and metadata
 "<dst>.json" - target JSON file to contain new article structure plan and generated content
 ```
 
-1. Starts with an article structure plan specified in [`configs/write.yaml`](configs/write.yaml).
-2. For each section of the plan uses the specified LLM to generate section content:
+1. Starts with an article structure plan specified in last document of `<dst>.json`.
+2. For each section of the plan uses the LLM specified in [`configs/write.yaml`](configs/write.yaml) to generate section content:
     1. Collects section headers on a path from structure top to current section.
     2. Uses the search index to retrieve the paragraphs from source articles relevant to collected section headers.
     3. Collects all article section headers along with their content if present.
     4. Requests the specified LLM for new content of the current section basing on the collected paragraphs and present article content.
-    5. Stores the resulting section in the source JSON along other source article content and metadata.
-3. Writes the resulting article to standard output.
+    5. Stores the resulting section in last document of `<dst>.json` along with all source articles in the new document's citation list.
+    6. Prints the generated section to standard output.
 
 ## Rewriting article content
 
 ```bash
 python . "<src>.json" "<dst>.json" configs/rewrite.yaml
 
-"<src>.json" - source JSON file containing source article content and metadata
+"<src>.json" - source JSON file containing source article content, embeddings and metadata
 "<dst>.json" - target JSON file to contain rewritten article content
 ```
 
-1. Starts with an article specified in [`configs/rewrite.yaml`](configs/rewrite.yaml).
-2. For each section of the plan uses the specified LLM to generate section content:
-    1. Collects section headers on a path from structure top to current section.
-    2. Uses the search index to retrieve the paragraphs from source articles relevant to collected section headers.
-    3. Collects all article section headers along with their content if present.
-    4. Requests the specified LLM for new content of the current section basing on the collected paragraphs and present article content.
-    5. Stores the resulting section in the source JSON along other source article content and metadata.
-3. Writes the resulting article to standard output.
+1. Starts with an article specified in last document of `<dst>.json`.
+2. For each section of the article uses the LLM specified in [`configs/write.yaml`](configs/write.yaml) to generate new section content:
+    1. Collects section headers on a path from structure top to current section, then appends current section content.
+    2. Uses the search index to retrieve the paragraphs from source articles relevant to collected section headers and content.
+    3. Requests the specified LLM for new content of the current section basing on the collected paragraphs and present section content.
+    4. Stores the resulting section in last document of `<dst>.json` along with all source articles in the new document's citation list.
+    5. Prints the generated section to standard output.
