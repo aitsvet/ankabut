@@ -1,37 +1,37 @@
 # Ankabut
 
 An automated LLM prompting framework for:
-1. [preprocessing journal articles into a uniform structure](#preprocessing-journal-articles);
+1. [preprocessing literature items into a uniform structure](#preprocessing-journal-articles);
 2. [extracting content and metadata from preprocessed articles](#extracting-content-and-metadata-from-articles);
 3. [indexing and searching with LLM embeddings](#indexing-and-searching-with-llm-embeddings);
 4. [generating new article structure plans](#generating-new-article-structure-plans);
 5. [generating article content for specified plan](#generating-article-content-for-specified-plan).
 
-## Preprocessing journal articles
+## Preprocessing literature items
 
 ```bash
 python . "<src>.rdf" "<dst dir>"
 
 "<src>.rdf" - path to source Zotero RDF file containing links to PDF attachments
-"<dst dir>" - destination directory where preprocessed article files shall be stored
+"<dst dir>" - destination directory where extracted Markdown files shall be stored
 ```
 
-1. Parses Zotero RDF file containing article citations.
-2. Parses linked PDF files via [marker-pdf](https://github.com/VikParuchuri/marker).
-3. Stores parsed article content (without images) in the following Markdown structure:
+1. Parses Zotero RDF file containing item citations.
+2. Parses linked PDF files via [marker-pdf](https://github.com/datalab-to/marker).
+3. Stores parsed item content (without images) in the following Markdown structure:
 
 ```Markdown
-<article id (DOI, URL, etc)>
+<item id (DOI, URL, etc)>
 ...
-<article id (DOI, URL, etc)>
+<item id (DOI, URL, etc)>
 
-<year of publication> <journal name> <issue> <volume> etc
+<year of publication> <journal name> <issue> <volume> <etc.>
 
-<author name> <author title> <institution> etc
+<author name> <author title> <institution> <etc.>
 ...
-<author name> <author title> <institution> etc
+<author name> <author title> <institution> <etc.>
 
-# <article title>
+# <item title>
 
 Tags: <from Zotero> ...
 
@@ -56,28 +56,28 @@ Tags: <from Zotero> ...
 ]
 ```
 
-## Extracting content and metadata from articles
+## Extracting content and metadata from literature items
 
 ```bash
 python . "<src dir>" "<dst>.json"
 
-"<src dir>" - source directory containing Markdown article files
-"<dst>.json" - destination JSON file where article content and metadata shall be stored
+"<src dir>" - source directory containing extracted Markdown files
+"<dst>.json" - destination JSON file where item content and metadata shall be stored
 ```
 
-1. Parses articles in Markdown format described above.
-2. Stores all articles in the follfwing JSON format:
+1. Parses literature items in Markdown format described above.
+2. Stores all literature items in the following JSON format:
 
 ```JSON
 {
-    "articles": [
+    "items": [
         {
             "ids": [ "DOI", "URL", "etc" ],
             "year": "2025",
             "authors": [
                 "Author Name, Title, Institution", // ...
             ],
-            "title": "<article title>",
+            "title": "<item title>",
             "abstract": "<...>",
             "keywords": [ "keyword", /* ... */ ],
             "sections": [
@@ -115,20 +115,20 @@ python . "<src dir>" "<dst>.json"
 ```bash
 python . "<src>.json" "<dst>.json" configs/embed.yaml
 
-"<src>.json" - source JSON file containing article content and metadata
-"<dst>.json" - destination JSON file to contain both articles and embedding vectors
+"<src>.json" - source JSON file containing item content and metadata
+"<dst>.json" - destination JSON file to contain both items and embedding vectors
 ```
 
-1. Retrieves embeddings for each paragraph of each section of each article in the source JSON file from an LLM, cofigured in [`configs/embed.yaml`](configs/embed.yaml).
-2. Stores embeddings along with article contents and metadata into destination JSON file.
+1. Retrieves embeddings for each paragraph of each section of each item in the source JSON file from an LLM, cofigured in [`configs/embed.yaml`](configs/embed.yaml).
+2. Stores embeddings along with item contents and metadata into destination JSON file.
 
 ```bash
 echo 'search query' | python . "<dst>.json" . configs/embed.yaml
 
-"<dst>.json" - JSON file to contain both articles and embedding vectors
+"<dst>.json" - JSON file to contain both items and embedding vectors
 ```
 
-1. Reads article contents and metadata along with paragraph embeddings from source JSON file.
+1. Reads item contents and metadata along with paragraph embeddings from source JSON file.
 2. Retrieves embedding of the search query using an LLM, cofigured in [`configs/embed.yaml`](configs/embed.yaml).
 3. Runs a vector search using the index build from source paragraph embeddings.
 4. Retrieves the content of corresponding paragraphs from the source JSON file.
@@ -147,11 +147,11 @@ echo 'search query' | python . "<dst>.json" . configs/embed.yaml
 ```bash
 python . "<src>.json" "<dst>.html" configs/analyze.yaml
 
-"<src>.json" - source JSON file containing both articles and embedding vectors
-"<dst>.html" - destination HTML file to contain article graph and similarity report
+"<src>.json" - source JSON file containing both items and embedding vectors
+"<dst>.html" - destination HTML file to contain item graph and similarity report
 ```
 
-1. Builds a graph of articles (represented by `year`), author names and keywords as configured in [`configs/analyze.yaml`](configs/analyze.yaml).
+1. Builds a graph of items (represented by `year`), author names and keywords as configured in [`configs/analyze.yaml`](configs/analyze.yaml).
 2. Prints `max_samples` pairs of paragraphs from source documents having least embedding similarity.
 3. Plots a heatmap of cosine distance beetween pairs of paragraph embeddings.
 
@@ -160,15 +160,15 @@ python . "<src>.json" "<dst>.html" configs/analyze.yaml
 ```bash
 python . "<src>.json" "<dst>.json" configs/plan.yaml
 
-"<src>.json" - source JSON file containing source article content and metadata
+"<src>.json" - source JSON file containing source item content and metadata
 "<dst>.json" - target JSON file to contain new article structure plan
 ```
 
 1. Reads `<dst>.json` (you can copy [`data/template.json`](data/template.json) as an example).
 2. Starts with an article structure plan specified in last document of `<dst>.json`.
-3. Starts with a first article in `<src>.json` not in citation list of last document of `<dst>.json`.
-3. For each article in `<src>.json` uses the LLM specified in [`configs/plan.yaml`](configs/plan.yaml) to refine the plan:
-    1. Collects article content paragraphs in each section.
+3. Starts with a first item in `<src>.json` not in citation list of last document of `<dst>.json`.
+3. For each item in `<src>.json` uses the LLM specified in [`configs/plan.yaml`](configs/plan.yaml) to refine the plan:
+    1. Collects item content paragraphs in each section.
     2. In case the collected content overfits the specified LLM context size, summarises the collected content.
     3. Requests the specified LLM for a new version of the plan basing on the current version the plan and current article content.
     4. Stores the new plan as new document of `<dst>.json` along with all processed articles in the new document's citation list.
@@ -179,7 +179,7 @@ python . "<src>.json" "<dst>.json" configs/plan.yaml
 ```bash
 python . "<src>.json" "<dst>.json" configs/write.yaml
 
-"<src>.json" - source JSON file containing source article content, embeddings and metadata
+"<src>.json" - source JSON file containing source item content, embeddings and metadata
 "<dst>.json" - target JSON file to contain new article structure plan and generated content
 ```
 
@@ -197,7 +197,7 @@ python . "<src>.json" "<dst>.json" configs/write.yaml
 ```bash
 python . "<src>.json" "<dst>.json" configs/rewrite.yaml
 
-"<src>.json" - source JSON file containing source article content, embeddings and metadata
+"<src>.json" - source JSON file containing source item content, embeddings and metadata
 "<dst>.json" - target JSON file to contain rewritten article content
 ```
 
