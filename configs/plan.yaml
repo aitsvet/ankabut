@@ -2,9 +2,9 @@ script: plan.py
 onebyone: False
 prompts:
   embed:
-    model: snowflake-arctic-embed2:latest
+    model: qwen3-embedding:8b
   summary:
-    model: rscr/ruadapt_qwen2.5_32b:Q4_K_M
+    model: deepseek-r1:32b
     max_tokens: 32768
     template: |
       Напиши на русском языке от {min} до {max} слов краткого содержания смысла приведённого ниже раздела из научной статьи:
