@@ -3,7 +3,7 @@ prompts:
   embed:
     window_size: 0
     max_samples: 20
-    model: snowflake-arctic-embed2:latest
+    model: qwen3-embedding:8b
   write:
     model: deepseek-r1:32b
     max_tokens: 32768

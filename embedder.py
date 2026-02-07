@@ -9,12 +9,12 @@ import database
 
 class Index:
 
-    def __init__(self, db: database.Load, cfg, dst: pathlib.Path):
+    def __init__(self, db: database.Load, dst: pathlib.Path, cfg = {}):
         embed_cfg = cfg.get('prompts', {}).get('embed', {})
         self.window_size = embed_cfg.get('window_size', 2)
         self.max_samples = embed_cfg.get('max_samples', 10)
         self.threshold = embed_cfg.get('threshold', 0.0)
-        self.model = embed_cfg.get('model', 'bge-m3')
+        self.model = embed_cfg.get('model')
         self.client = llm.Client(cfg)
         self.docs = parser.sort_docs(db.db['docs'])
         self.ids, arr = [], []
@@ -70,8 +70,14 @@ class Index:
                     if dist < min_dist:
                         min_dist = dist
                     c += re.sub(r'\[[, 0-9]+\]', '', paragraphs[par_id]['content']) + '\n\n'
-            author = parser.author_name(doc['authors'][0])
-            c = f"Из источника {num+1}. {author} ({doc['year']}) {doc['title']}:\n\n" + c
+            parts = [f"Из источника {num+1}"]
+            if doc.get('authors'):
+                parts.append(f". {parser.author_name(doc['authors'][0])}")
+            if doc.get('year'):
+                parts.append(f" ({doc['year']})")
+            if doc.get('title'):
+                parts.append(f" {doc['title']}")
+            c = ''.join(parts) + ":\n\n" + c
             sources_dist.append({'c': c, 'd': min_dist})
         result = []
         for s in sorted(sources_dist, key=lambda s: s['d']):

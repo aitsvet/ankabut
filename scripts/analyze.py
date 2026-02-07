@@ -4,8 +4,8 @@ import pathlib
 import embedder
 from analyze import graph, distmap, closest
 
-def run(db, cfg, dst: pathlib.Path):
-    em = embedder.Index(db, cfg, dst)
+def run(db, dst: pathlib.Path, cfg = {}):
+    em = embedder.Index(db, dst, cfg)
     n = em.ems.ntotal
     vectors = np.empty((n, em.ems.d), dtype=np.float32)
     for i in range(n):

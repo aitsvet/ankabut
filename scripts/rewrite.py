@@ -2,5 +2,5 @@ import pathlib
 
 from generate import rewriter
     
-def run(db, cfg, dst: pathlib.Path):
-    print(rewriter.New(db, dst, cfg).rewrite())
+def run(db, dst: pathlib.Path, cfg = {}):
+    print(rewriter.New(db, cfg, dst).rewrite())

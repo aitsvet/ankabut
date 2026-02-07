@@ -32,4 +32,4 @@ closest:
   same_source: false
 prompts:
   embed:
-    model: snowflake-arctic-embed2:latest
+    model: qwen3-embedding:8b

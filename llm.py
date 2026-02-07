@@ -1,3 +1,21 @@
+import ssl
+import httpx
+
+OriginalClient = httpx.Client
+
+class ExtraRootCertClient(OriginalClient):
+    def __init__(self, *args, **kwargs):
+        try:
+            context = ssl.create_default_context()
+            context.set_ciphers("DEFAULT:@SECLEVEL=2")
+            context.load_verify_locations(cafile="./data/ssl.pem")
+            kwargs["verify"] = context
+        except Exception as e:
+            pass
+        super().__init__(*args, **kwargs)
+
+httpx.Client = ExtraRootCertClient
+
 import openai
 import datetime
 
@@ -15,7 +33,7 @@ class Client:
         parser.extend_config('configs/llm.yaml', cfg)
         arguments = {
             'base_url': cfg.get('base_url', 'http://localhost:11434/v1/'),
-            'api_key': cfg.get('token', 'EMPTY'),
+            'api_key': cfg.get('api_key', 'EMPTY'),
             'timeout': cfg.get('timeout', 3600.0)
         }
         self.client = openai.Client(**arguments)
@@ -33,7 +51,7 @@ class Client:
         return response
 
     def embed(self, input):
-        model = self.prompts.get('embed', {}).get('model', 'bge-m3')
+        model = self.prompts.get('embed', {}).get('model')
         log(f"embed [{len(input)}] >>> {model}", input)
         response = self.client.embeddings.create(input=input, model=model)
         ems = response.data[0].embedding

@@ -4,7 +4,7 @@ import weasyprint
 
 import parser
 
-def run(db, cfg, dst: Path):
+def run(db, dst: Path, cfg = {}):
     t = len(db.db['docs'])
     output = ''
     for (n, doc) in enumerate(parser.sort_docs(db.db['docs']), 1):

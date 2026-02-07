@@ -1,3 +1,5 @@
+import llm # substitute httpx.Client and load openai
+
 from pathlib import Path
 from marker.converters.pdf import PdfConverter
 from marker.models import create_model_dict
@@ -10,9 +12,11 @@ class Reader:
         self.config = {
             "force_ocr": True,
             "paginate_output": True,
-            "llm_service": "marker.services.ollama.OllamaService",
-            "ollama_base_url": cfg.get('base_url', 'http://localhost:11434/v1/'),
-            "ollama_model": cfg.get('model', "qwen3-vl:32b"),
+            "use_llm": True,
+            "llm_service": "marker.services.openai.OpenAIService",
+            "openai_base_url": cfg.get('base_url', 'http://localhost:11434/v1/'),
+            "openai_api_key": cfg.get('api_key', 'EMPTY'),
+            "openai_model": cfg.get('model'),
         }
     
     def render(self, output_format, src):

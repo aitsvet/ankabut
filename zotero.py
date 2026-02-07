@@ -13,13 +13,13 @@ def attrib(elem, name, default = None):
 
 class Convert:
 
-    def __init__(self, src: Path, dst: Path):
+    def __init__(self, src: Path, dst: Path, cfg = {}):
         with open(src, 'r') as f:
             self.root = ET.fromstring(f.read())
         with open(src, 'r') as f:
             start = ET.iterparse(f, events=['start-ns'])
             self.nss = {key: value for _, (key, value) in start}
-        self.reader = pdf.Reader()
+        self.reader = pdf.Reader(cfg)
         self.journals = self.all('bib:Journal')
         self.attachments = self.all('z:Attachment')
         for item in self.all('bib:Book') + self.all('bib:Article') + self.all('rdf:Description'):
@@ -58,8 +58,8 @@ class Convert:
             journal = self.text(journal, 'dc:title')
             citation = [year, journal, volume, number, pages]
         else:
-            ids = []
-            citation = []
+            ids = [attrib(item, 'about')] if attrib(item, 'about') else []
+            citation = [year] if year else []
         tags = [self.text(tag, 'rdf:value') for tag in item.findall('dc:subject/z:AutomaticTag', self.nss)]
         attachment = [a.find('rdf:resource', self.nss) for a in self.attachments if attrib(a, 'about') == link][0]
         source_path = src.parent.joinpath(attrib(attachment, 'resource')).as_posix()
@@ -73,6 +73,8 @@ class Convert:
         lowerlines = []
         for l in source.splitlines():
             l = l
+            if re.match(r'^!\[.*\]\(.*\)$', l.strip()):
+                continue
             if not any(c in l for c in ['=', '/']):
                 l = l.replace('**', '').replace('©', '')
                 l = re.sub(r'^\*+', '', l)
