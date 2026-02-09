@@ -1,4 +1,4 @@
-import llm # substitute httpx.Client and load openai
+import llm
 
 from pathlib import Path
 from marker.converters.pdf import PdfConverter
@@ -9,14 +9,15 @@ from marker.config.parser import ConfigParser
 class Reader:
 
     def __init__(self, cfg = {}):
+        client = llm.Client(cfg)
         self.config = {
             "force_ocr": True,
             "paginate_output": True,
             "use_llm": True,
             "llm_service": "marker.services.openai.OpenAIService",
-            "openai_base_url": cfg.get('base_url', 'http://localhost:11434/v1/'),
-            "openai_api_key": cfg.get('api_key', 'EMPTY'),
-            "openai_model": cfg.get('model'),
+            "openai_base_url": client.cfg.get('base_url', 'http://localhost:11434/v1/'),
+            "openai_api_key": client.cfg.get('api_key', 'EMPTY'),
+            "openai_model": client.cfg.get('model'),
         }
     
     def render(self, output_format, src):

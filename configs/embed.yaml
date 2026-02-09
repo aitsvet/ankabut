@@ -1,6 +1,26 @@
 script: embed.py
 prompts:
   embed:
-    window_size: 0
-    max_samples: 20
+    window_size: 1
+    max_samples: 10
     model: qwen3-embedding:8b
+  rerank:
+    window_size: 5
+    max_samples: 5
+    min_samples: 3
+    model: qwen3-vl:32b
+    max_tokens: 1024
+    template: |
+      Query: {query}
+
+      Below are search results (window of {window_size} paragraphs). Each paragraph has an ID in format doc-section-paragraph.
+      
+      {paragraphs}
+
+      Below are search results already selected by you from previous windows. Each paragraph has an ID in format doc-section-paragraph.
+      
+      {context}
+
+      Select up to {max_samples} most relevant paragraph IDs that best match the query. Return only IDs separated by commas, e.g., "doc-1-2, doc-3-1, doc-5-4"
+      
+      Return at least {min_samples} results, don't return blank response if have paragraphs any close to query: {query}.

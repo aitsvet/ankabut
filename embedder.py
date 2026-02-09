@@ -6,6 +6,7 @@ import re
 import llm
 import parser
 import database
+import reranker
 
 class Index:
 
@@ -21,44 +22,68 @@ class Index:
         need_save = False
         for (n, doc) in enumerate(self.docs):
             for (i, sec) in enumerate(doc['sections']):
-                for (j, par) in enumerate(sec['paragraphs']):
-                    self.ids.append(f"{doc['path']}:{i}:{j}")
-                    if self.model in par.get('embedding', {}):
-                        arr.append(parser.unpack_vector(par['embedding'][self.model]))
-                    else:
-                        need_save = True
-                        print(f"{n+1} из {len(self.docs)} {self.ids[-1]}\n\n{par["content"]}\n\n")
-                        vector = self.client.embed(par['content'])
-                        arr.append(vector)
-                        if 'embedding' in par:
-                            par['embedding'][self.model] = parser.pack_vector(vector)
+                if 'paragraphs' in sec:
+                    for (j, par) in enumerate(sec['paragraphs']):
+                        self.ids.append(f"{doc['path']}:{i}:{j}")
+                        if self.model in par.get('embedding', {}):
+                            arr.append(parser.unpack_vector(par['embedding'][self.model]))
                         else:
-                            par['embedding'] = {self.model: parser.pack_vector(vector)}
+                            need_save = True
+                            print(f"{n+1} из {len(self.docs)} {self.ids[-1]}\n\n{par["content"]}\n\n")
+                            vector = self.client.embed(par['content'])
+                            arr.append(vector)
+                            if 'embedding' in par:
+                                par['embedding'][self.model] = parser.pack_vector(vector)
+                            else:
+                                par['embedding'] = {self.model: parser.pack_vector(vector)}
         arr = numpy.array(arr)
         self.ems = faiss.IndexFlatL2(arr.shape[1])
         self.ems.add(arr)
         if need_save and dst and dst.suffix == '.json':
            db.save(dst)
+        if 'rerank' in cfg.get('prompts', {}):
+            self.reranker = reranker.Reranker(cfg, self.client, self.docs, self.ids)
+        else:
+            self.reranker = None
 
-    def search(self, input, limit = 0):
+    def query(self, input):
         em = self.client.embed(input)
         dists, ids = self.ems.search(numpy.array([em]), k=self.max_samples)
-        sources_set = {}
+        results = []
         for dist, id in zip(dists[0], ids[0]):
             if self.threshold and dist > self.threshold:
                 continue
-            id = self.ids[id]
-            doc_id, sec_id, par_id = id.split(':')
-            (num, doc) = [(n, d) for (n, d) in enumerate(self.docs) if d['path'] == doc_id][0]
+            id_str = self.ids[id]
+            doc_id, sec_id, par_id = id_str.split(':')
+            (doc_num, doc) = [(n, d) for (n, d) in enumerate(self.docs) if d['path'] == doc_id][0]
             sec_id, par_id = int(sec_id), int(par_id)
-            paragraphs = doc['sections'][sec_id]['paragraphs']
-            if not num in sources_set:
-                sources_set[num] = {}
-            if not sec_id in sources_set[num]:
-                sources_set[num][sec_id] = {}
+            results.append({
+                'id': f"{doc_num}:{sec_id}:{par_id}",
+                'path': f"{doc['path']}:{sec_id}:{par_id}",
+                'dist': dist
+            })
+        return sorted(results, key=lambda r: r['dist'])
+
+    def search_json(self, input):
+        results = self.query(input)
+        if self.reranker:
+            results = self.reranker.rerank(results, input)
+        return results
+
+    def search(self, input, limit = 0):
+        results = self.search_json(input)
+        sources_set = {}
+        for r in results:
+            doc_num, sec_id, par_id = r['id'].split(':')
+            doc_num, sec_id, par_id = int(doc_num), int(sec_id), int(par_id)
+            doc = self.docs[doc_num]
+            if not doc_num in sources_set:
+                sources_set[doc_num] = {}
+            if not sec_id in sources_set[doc_num]:
+                sources_set[doc_num][sec_id] = {}
             for p in range(par_id - self.window_size, par_id + self.window_size + 1):
-                if p >= 0 and p < len(paragraphs):
-                    sources_set[num][sec_id][p] = dist
+                if p >= 0 and p < len(doc['sections'][sec_id]['paragraphs']):
+                    sources_set[doc_num][sec_id][p] = r['dist']
         sources_dist = []
         for (num, secs) in sorted(sources_set.items()):
             doc = self.docs[num]
@@ -81,11 +106,12 @@ class Index:
             sources_dist.append({'c': c, 'd': min_dist})
         result = []
         for s in sorted(sources_dist, key=lambda s: s['d']):
-            if limit <= 0 or len(c) < limit:
+            current_len = len(s['c'])
+            if limit <= 0 or current_len <= limit:
                 result.append(s['c'])
-                limit -= len(c)
+                limit -= current_len
         return result
-    
+
     def get_paragraph(self, idx):
         doc_id, sec_id, par_id = self.ids[idx].split(':')
         doc = next(d for d in self.docs if d['path'] == doc_id)

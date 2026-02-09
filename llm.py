@@ -1,3 +1,23 @@
+# import logging
+# import os
+
+# # Set environment variable FIRST
+# os.environ['OPENAI_LOG'] = 'debug'
+
+# # Configure logging BEFORE any other imports
+# logging.basicConfig(
+#     level=logging.DEBUG,  # Set root to DEBUG to capture everything
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     force=True  # This is KEY - forces reconfiguration
+# )
+
+# # Now set specific loggers
+# logging.getLogger('openai').setLevel(logging.DEBUG)
+# logging.getLogger('openai._base_client').setLevel(logging.DEBUG)
+# logging.getLogger('httpx').setLevel(logging.DEBUG)
+# logging.getLogger('httpcore').setLevel(logging.DEBUG)
+# logging.getLogger('h11').setLevel(logging.DEBUG)
+
 import ssl
 import httpx
 
@@ -30,7 +50,8 @@ def log(info, debug = ''):
 class Client:
 
     def __init__(self, cfg = {}):
-        parser.extend_config('configs/llm.yaml', cfg)
+        self.cfg = cfg.copy()
+        parser.extend_config('configs/llm.yaml', self.cfg)
         arguments = {
             'base_url': cfg.get('base_url', 'http://localhost:11434/v1/'),
             'api_key': cfg.get('api_key', 'EMPTY'),
